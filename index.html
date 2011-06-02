@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+    	<title>App builder</title>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+		<script type="text/javascript" src="3rd/jquery.tmpl.min.js"></script>
+		<script type="text/javascript" src="3rd/underscore-min.js"></script>
+		<script type="text/javascript" src="src/utils.js"></script>
+		<script type="text/javascript" src="src/core.js"></script>
+		<link rel="stylesheet" href="3rd/overcast/jquery-ui-1.8.9.custom.css">
+		<link rel="stylesheet" href="styles.css">
+	</head>
+	<body>
+		<div id="loading">Loading...</div>
+
+		<script id="mainTemplate" type="text/x-jquery-tmpl">
+<div class="library"></div>
+<div class="canvas"></div>
+<div class="properties"></div>
+		</script>
+		<script id="messageTemplate" type="text/x-jquery-tmpl">
+			<div class="message ${className} ui-corner-all">
+				<div class="closeButton ui-icon ui-icon-close"></div>
+				<div class="messageText">
+					{{if icon}}
+						<span class="ui-icon ${icon}"></span>
+					{{/if}}
+					${message}
+				</div>
+			</div>
+		</script>
+	</body>
+</html>
