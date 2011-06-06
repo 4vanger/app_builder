@@ -16,12 +16,20 @@
 		<script id="mainTemplate" type="text/x-jquery-tmpl">
 <div class="library">
 	<ul>
-		<li>
-			<img src="styles/lib_textfield.png" alt="" data-libType="TextField" />
-		</li>
+		<li><div class="libControl" data-libType="Label">Label</div></li>
+		<li><div class="libControl" data-libType="TextField">Text field</div></li>
+		<li><div class="libControl" data-libType="TextArea">Text area</div></li>
+		<li><div class="libControl" data-libType="Switch">Switch</div></li>
+		<li><div class="libControl" data-libType="Button">Button</div></li>
+		<li><div class="libControl" data-libType="SearchBar">Search bar</div></li>
 	</ul>
+	<button id="generate">Generate</button>
 </div>
-<!--<div class="canvas"></div>-->
+		</script>
+		<script id="generatorTemplate" type="text/x-jquery-tmpl">
+			<div>
+				<textarea id="generator"></textarea>
+			</div>
 		</script>
 		<script id="messageTemplate" type="text/x-jquery-tmpl">
 			<div class="message ${className} ui-corner-all">
@@ -34,6 +42,7 @@
 				</div>
 			</div>
 		</script>
+
 		<script type="text/javascript" src="titanium.js"></script>
 		<script type="text/javascript" src="src/core.js"></script>
 	</body>

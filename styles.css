@@ -22,7 +22,7 @@ body {
 	height: 90% !important;
 	width: 100% !important;
 	border: 1px solid black !important;
-	background-color: #BCBCBC !important;
+	background-color: white !important;
 	background-image: url("styles/bg_canvas.png") !important;
 	background-repeat: repeat !important;
 }
@@ -40,6 +40,28 @@ body {
 	float: left;
 	margin: 0 0.1em;
 	cursor: pointer;
+}
+
+.library .libControl {
+	border:  2px solid orange;
+	padding: 0.1em 0.5em;
+}
+
+button#generate {
+	position: absolute;
+	right: 1em;
+	top: 1em;
+	font-size: 1em;
+}
+
+#generator {
+	width: 30em;
+	height: 30em;
+}
+
+.generatorDialog {
+	width: 32.5em !important;
+	height: 34em !important;
 }
 
 .ui-draggable {

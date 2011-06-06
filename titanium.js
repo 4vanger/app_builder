@@ -7999,7 +7999,6 @@ Ti._5.createClass('Titanium.Network.HTTPClient', function(args){
 })(Ti._5.createClass('Titanium.Android.PendingIntent'));
 ;
 (function(api){
-    console.log(api)
 	// Properties
 	var _anim = null;
 	Object.defineProperty(api, 'anim', {
