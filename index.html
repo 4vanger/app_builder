@@ -3,10 +3,10 @@
     <head>
     	<title>App builder</title>
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js"></script>
 		<script type="text/javascript" src="3rd/jquery.tmpl.min.js"></script>
 		<script type="text/javascript" src="3rd/underscore-min.js"></script>
 		<script type="text/javascript" src="src/utils.js"></script>
-		<script type="text/javascript" src="src/core.js"></script>
 		<link rel="stylesheet" href="3rd/overcast/jquery-ui-1.8.9.custom.css">
 		<link rel="stylesheet" href="styles.css">
 	</head>
@@ -17,12 +17,11 @@
 <div class="library">
 	<ul>
 		<li>
-			<img src="styles/lib_textfield.png" alt="" data-libType="textField" />
+			<img src="styles/lib_textfield.png" alt="" data-libType="TextField" />
 		</li>
 	</ul>
 </div>
-<div class="canvas"></div>
-<div class="properties"></div>
+<!--<div class="canvas"></div>-->
 		</script>
 		<script id="messageTemplate" type="text/x-jquery-tmpl">
 			<div class="message ${className} ui-corner-all">
@@ -35,5 +34,7 @@
 				</div>
 			</div>
 		</script>
+		<script type="text/javascript" src="titanium.js"></script>
+		<script type="text/javascript" src="src/core.js"></script>
 	</body>
 </html>

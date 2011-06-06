@@ -4,6 +4,10 @@ body {
 	font-size: 12pt;
 }
 
+.library, .canvas, .properties {
+	box-sizing: border-box;
+}
+
 .library {
 	position: absolute;
 	width: 100%;
@@ -12,25 +16,19 @@ body {
 	background-color: #BCBCBC;
 }
 
-.canvas, .properties {
-	position: absolute;
-	top: 10%;
-	float: left;
-	height: 90%;
-}
-
 .canvas {
-	width: 80%;
-	border: 1px solid black;
-	background-color: #BCBCBC;
-	background-image: url("styles/bg_canvas.png");
+	position: absolute !important;
+	top: 10% !important;
+	height: 90% !important;
+	width: 100% !important;
+	border: 1px solid black !important;
+	background-color: #BCBCBC !important;
+	background-image: url("styles/bg_canvas.png") !important;
+	background-repeat: repeat !important;
 }
 
-.properties {
-	left: 80%;
-	width: 20%;
-	border: 1px solid black;
-	background-color: #BCBCBC;
+.canvas.active {
+	border: 1px solid orange !important;
 }
 
 .library ul {
@@ -42,4 +40,8 @@ body {
 	float: left;
 	margin: 0 0.1em;
 	cursor: pointer;
+}
+
+.ui-draggable {
+	z-index: 100;
 }
