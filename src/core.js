@@ -2,6 +2,152 @@ $(function(){
 	initTemplates();
 	$('#loading').remove();
 
+	var getLeftTop = function(event, ui){
+		var canvas = $('.canvas');
+		var canvasOffset = canvas.offset();
+		return {
+			left: ui.offset.left - canvasOffset.left,
+			top: ui.offset.top - canvasOffset.top
+		}
+	};
+
+	var getLibDataByEl = function(el){
+		var id = el.attr('data-libId');
+		if(id != null){
+			return _library[parseInt(id)];
+		}
+		return null;
+	};
+
+	var reposition = function(id, event, ui){
+
+	};
+
+	var controls = {
+		TextField: {
+			counter: 0,
+			create: function(left, top){
+				var args = {
+					left: left,
+					top: top
+				};
+				var el = Ti.UI.createTextField(args);
+				el.dom.readOnly = true;
+				return {
+					control: el,
+					args: args
+				};
+			},
+			generate: function(){
+				return 'var tf' + controls.TextField.counter++ + ' = Ti.UI.createTextField({\n' +
+					args2str(item.args) +
+					'\n});\nwin.add(el);\n\n';
+			}
+		},
+		Label: {
+			counter: 0,
+			create: function(left, top){
+				var args = {
+					left: left,
+					top: top,
+					text: prompt('Label text')
+				};
+
+				return {
+					control: Ti.UI.createLabel(args),
+					args: args
+				};
+			},
+			generate: function(){
+				return 'var lb' + controls.Label.counter++ + ' = Ti.UI.createLabel({\n' +
+					args2str(item.args) +
+					'\n});\nwin.add(el);\n\n';
+			}
+		},
+		TextArea: {
+			counter: 0,
+			create: function(left, top){
+				var args = {
+					left: left,
+					top: top
+				};
+				var el = Ti.UI.createTextArea(args);
+				el.dom.readOnly = true;
+				return {
+					control: el,
+					args: args
+				};
+			},
+			generate: function(){
+				return 'var ta' + controls.TextArea.counter++ + ' = Ti.UI.createTextArea({\n' +
+					args2str(item.args) +
+					'\n});\nwin.add(el);\n\n';
+			}
+		},
+		Switch: {
+			counter: 0,
+			create: function(left, top){
+				var args = {
+					left: left,
+					top: top
+				};
+
+				var el = Ti.UI.createSwitch(args);
+				el.dom.readOnly = true;
+				return {
+					control: el,
+					args: args
+				};
+			},
+			generate: function(){
+				return 'var sw' + controls.Switch.counter++ + ' = Ti.UI.createSwitch({\n' +
+					args2str(item.args) +
+					'\n});\nwin.add(el);\n\n';
+			}
+		},
+		Button: {
+			counter: 0,
+			create: function(left, top){
+				var args = {
+					title: prompt("Button title"),
+					left: left,
+					top: top
+				};
+
+				return {
+					control: Ti.UI.createButton(args),
+					args: args
+				};
+			},
+			generate: function(){
+				return 'var bt' + controls.Button.counter++ + ' = Ti.UI.createButton({\n' +
+					args2str(item.args) +
+					'\n});\nwin.add(el);\n\n';
+			}
+		},
+		SearchBar: {
+			counter: 0,
+			create: function(left, top){
+				var args = {
+					left: left,
+					top: top
+				};
+
+				var el = Ti.UI.createSearchBar(args);
+				el.dom.readOnly = true;
+				return {
+					control: el,
+					args: args
+				};
+			},
+			generate: function(){
+				return 'var sb' + controls.SearchBar.counter++ + ' = Ti.UI.createSearchBar({\n' +
+					args2str(item.args) +
+					'\n});\nwin.add(el);\n\n';
+			}
+		}
+	};
+
 	var _library = [];
 
 	$.tmpl('main').appendTo(document.body);
@@ -9,74 +155,41 @@ $(function(){
 	win.dom.className += " canvas"
 	var canvas = $('.canvas');
 	canvas.droppable({
-		accept: '[data-libType]',
+//		accept: '[data-libType]',
 		tolerance: 'fit',
 		activate: function(){
-			$(this).addClass('active');
+			canvas.addClass('active');
 		},
 		deactivate: function(){
-			$(this).removeClass('active');
+			canvas.removeClass('active');
 		},
 		drop: function(event, ui){
-			var absCoords = canvas.offset();
-			var canvasLeft = ui.offset.left - absCoords.left;
-			var canvasTop = ui.offset.top - absCoords.top;
-			var el, args;
-			switch (ui.draggable.attr('data-libType')){
-				case 'TextField':
-					args = {
-						left: canvasLeft,
-						top: canvasTop
-					};
-					el = Ti.UI.createTextField(args);
-					break;
-				case 'Label':
-					args = {
-						left: canvasLeft,
-						top: canvasTop,
-						text: prompt('Label text')
-					};
-					el = Ti.UI.createLabel(args);
-					break;
-				case 'TextArea':
-					args = {
-						left: canvasLeft,
-						top: canvasTop
-					};
-					el = Ti.UI.createTextArea(args);
-					break;
-				case 'Switch':
-					args = {
-						left: canvasLeft,
-						top: canvasTop
-					};
-					el = Ti.UI.createSwitch(args);
-					break;
-				case 'Button':
-					args = {
-						title: prompt("Button title"),
-						left: canvasLeft,
-						top: canvasTop
-					};
-					el = Ti.UI.createButton(args);
-					break;
-				case 'SearchBar':
-					args = {
-						left: canvasLeft,
-						top: canvasTop
-					};
-					el = Ti.UI.createSearchBar(args);
-					break;
-			}
+			var el = ui.draggable;
+			var libData = getLibDataByEl(ui.draggable);
+			var pos = getLeftTop(event, ui);
+			console.log(el, libData)
+			if(libData != null){
+				libData.control.left = libData.args.left = pos.left;
+				libData.control.top = libData.args.top = pos.top;
+			} else {
+				var typ = el.attr('data-libType');
+				// create
+				var obj = controls[typ].create(pos.left, pos.top);
+				$(obj.control.dom).attr('data-libId', _library.length).attr('data-libType', typ);
+				
+				_library.push({
+					control: obj.control,
+					typ: typ,
+					args: obj.args
+				});
 
-			_library.push({
-				el: el,
-				typ: ui.draggable.attr('data-libType'),
-				args: args
-			});
-
-			if(el != null){
-				Ti.UI.currentWindow.add(el);
+				Ti.UI.currentWindow.add(obj.control);
+				$(obj.control.dom).draggable({
+					grid: [10, 10],
+					containment: '.canvas',
+					snap: true,
+					snapMode: 'inner'
+				});
 			}
 		}
 	});

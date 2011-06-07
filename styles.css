@@ -45,6 +45,7 @@ body {
 .library .libControl {
 	border:  2px solid orange;
 	padding: 0.1em 0.5em;
+	background-color: white;
 }
 
 button#generate {
