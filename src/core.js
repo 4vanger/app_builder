@@ -21,6 +21,33 @@ $(function(){
 		return null;
 	};
 
+	var args2str = function(args){
+		var str = [];
+		for(var arg in args){
+			var line = [];
+			line.push('\t');
+			if(/^\w[\w\d]*$/.test(arg)){
+				line.push(arg);
+			} else {
+				line.push('\'');
+				line.push(arg.replace(/'/g, '\\\''));
+				line.push('\'');
+			}
+			line.push(': ');
+			var value = args[arg];
+			if(typeof value === 'string'){
+				line.push('\'');
+				line.push(value.replace(/\\/g, '\\\\').replace(/'/g, '\\\''));
+				line.push('\'');
+			} else if(typeof value === 'number'){
+				line.push(value);
+			}
+
+			str.push(line.join(''));
+		}
+		return str.join(',\n');
+	};
+
 	var controls = {
 		TextField: {
 			counter: 0,
@@ -36,7 +63,7 @@ $(function(){
 					args: args
 				};
 			},
-			generate: function(){
+			generate: function(item){
 				return 'var tf' + controls.TextField.counter++ + ' = Ti.UI.createTextField({\n' +
 					args2str(item.args) +
 					'\n});\nwin.add(el);\n\n';
@@ -56,7 +83,7 @@ $(function(){
 					args: args
 				};
 			},
-			generate: function(){
+			generate: function(item){
 				return 'var lb' + controls.Label.counter++ + ' = Ti.UI.createLabel({\n' +
 					args2str(item.args) +
 					'\n});\nwin.add(el);\n\n';
@@ -76,7 +103,7 @@ $(function(){
 					args: args
 				};
 			},
-			generate: function(){
+			generate: function(item){
 				return 'var ta' + controls.TextArea.counter++ + ' = Ti.UI.createTextArea({\n' +
 					args2str(item.args) +
 					'\n});\nwin.add(el);\n\n';
@@ -97,7 +124,7 @@ $(function(){
 					args: args
 				};
 			},
-			generate: function(){
+			generate: function(item){
 				return 'var sw' + controls.Switch.counter++ + ' = Ti.UI.createSwitch({\n' +
 					args2str(item.args) +
 					'\n});\nwin.add(el);\n\n';
@@ -117,7 +144,7 @@ $(function(){
 					args: args
 				};
 			},
-			generate: function(){
+			generate: function(item){
 				return 'var bt' + controls.Button.counter++ + ' = Ti.UI.createButton({\n' +
 					args2str(item.args) +
 					'\n});\nwin.add(el);\n\n';
@@ -138,7 +165,7 @@ $(function(){
 					args: args
 				};
 			},
-			generate: function(){
+			generate: function(item){
 				return 'var sb' + controls.SearchBar.counter++ + ' = Ti.UI.createSearchBar({\n' +
 					args2str(item.args) +
 					'\n});\nwin.add(el);\n\n';
@@ -224,68 +251,11 @@ $(function(){
 	});
 
 	$("#generate").button().click(function(){
-		var args2str = function(args){
-			var str = [];
-			for(var arg in args){
-				var line = [];
-				line.push('\t');
-				if(/^\w[\w\d]*$/.test(arg)){
-					line.push(arg);
-				} else {
-					line.push('\'');
-					line.push(arg.replace(/'/g, '\\\''));
-					line.push('\'');
-				}
-				line.push(': ');
-				var value = args[arg];
-				if(typeof value === 'string'){
-					line.push('\'');
-					line.push(value.replace(/\\/g, '\\\\').replace(/'/g, '\\\''));
-					line.push('\'');
-				} else if(typeof value === 'number'){
-					line.push(value);
-				}
-
-				str.push(line.join(''));
-			}
-			return str.join(',\n');
-		};
-
-		var res = ["var win = Ti.UI.currentWindow;\nvar el;\n\n"];
+		var res = ["var win = Ti.UI.currentWindow;\n\n"];
 		for(var ii = 0; ii < _library.length; ii++){
 			var item = _library[ii];
-			switch (item.typ){
-				case "TextField":
-					res.push("el = Ti.UI.createTextField({\n");
-					res.push(args2str(item.args));
-					res.push('\n});\nwin.add(el);\n\n');
-					break;
-				case "Label":
-					res.push("el = Ti.UI.createLabel({\n");
-					res.push(args2str(item.args));
-					res.push('\n});\nwin.add(el);\n\n');
-					break;
-				case 'TextArea':
-					res.push("el = Ti.UI.createTextArea({\n");
-					res.push(args2str(item.args));
-					res.push('\n});\nwin.add(el);\n\n');
-					break;
-				case 'Switch':
-					res.push("el = Ti.UI.createSwitch({\n");
-					res.push(args2str(item.args));
-					res.push('\n});\nwin.add(el);\n\n');
-					break;
-				case 'Button':
-					res.push("el = Ti.UI.createButton({\n");
-					res.push(args2str(item.args));
-					res.push('\n});\nwin.add(el);\n\n');
-					break;
-				case 'SearchBar':
-					res.push("el = Ti.UI.createSearchBar({\n");
-					res.push(args2str(item.args));
-					res.push('\n});\nwin.add(el);\n\n');
-					break;
-			}
+			console.log(item)
+			res.push(controls[item.typ].generate(item));
 		}
 
 		res = res.join('');
