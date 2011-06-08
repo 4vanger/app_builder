@@ -21,14 +21,14 @@ body {
 	top: 10% !important;
 	height: 90% !important;
 	width: 100% !important;
-	border: 1px solid black !important;
+	/*border: 1px solid black !important;*/
 	background-color: white !important;
 	background-image: url("styles/bg_canvas.png") !important;
 	background-repeat: repeat !important;
 }
 
 .canvas.active {
-	border: 1px solid orange !important;
+	/*border: 1px solid orange !important;*/
 }
 
 .library ul {

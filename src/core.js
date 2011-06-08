@@ -5,9 +5,11 @@ $(function(){
 	var getLeftTop = function(event, ui){
 		var canvas = $('.canvas');
 		var canvasOffset = canvas.offset();
+		var left = ui.offset.left - canvasOffset.left;
+		var top = ui.offset.top - canvasOffset.top;
 		return {
-			left: ui.offset.left - canvasOffset.left,
-			top: ui.offset.top - canvasOffset.top
+			left: left - left % 5,
+			top: top - top % 5
 		}
 	};
 
@@ -17,10 +19,6 @@ $(function(){
 			return _library[parseInt(id)];
 		}
 		return null;
-	};
-
-	var reposition = function(id, event, ui){
-
 	};
 
 	var controls = {
@@ -150,6 +148,30 @@ $(function(){
 
 	var _library = [];
 
+	var attachMouseenter = function(dd){
+		dd = $(dd);
+		// put layover element cause Webkit doesn't allow to DND form elements
+		dd.mouseenter(function(){
+			$('<div></div>')
+				.appendTo(document.body)
+				.css('position', 'absolute')
+				.offset(dd.offset())
+				.width(dd.outerWidth())
+				.height(dd.outerHeight())
+				.mouseleave(function(){$(this).remove();})
+				.draggable({
+					grid: [5, 5],
+					helper: function(event){
+						// we need to remove cover element with little delay because DND needs to take its position.
+						setTimeout(function(){$(this).remove()}, 100);
+						dd.unbind("mouseenter");
+						return dd;
+					},
+					containment: '.canvas'
+				});
+		}).mouseenter();
+	};
+
 	$.tmpl('main').appendTo(document.body);
 	var win = Ti.UI.currentWindow;
 	win.dom.className += " canvas"
@@ -164,13 +186,20 @@ $(function(){
 			canvas.removeClass('active');
 		},
 		drop: function(event, ui){
-			var el = ui.draggable;
-			var libData = getLibDataByEl(ui.draggable);
+			var el = ui.helper;
+			var libData = getLibDataByEl(ui.helper);
 			var pos = getLeftTop(event, ui);
-			console.log(el, libData)
+			var dd;
 			if(libData != null){
 				libData.control.left = libData.args.left = pos.left;
 				libData.control.top = libData.args.top = pos.top;
+				// need to restore element cause it was removed on drag end
+				var parent = ui.helper[0].parentNode;
+				setTimeout(function(){
+					parent.appendChild(ui.helper[0]);
+					attachMouseenter(ui.helper[0]);
+				}, 0);
+				dd = ui.helper[0];
 			} else {
 				var typ = el.attr('data-libType');
 				// create
@@ -184,21 +213,14 @@ $(function(){
 				});
 
 				Ti.UI.currentWindow.add(obj.control);
-				$(obj.control.dom).draggable({
-					grid: [10, 10],
-					containment: '.canvas',
-					snap: true,
-					snapMode: 'inner'
-				});
+				attachMouseenter(obj.control.dom);
 			}
 		}
 	});
 	$('.library [data-libType]').draggable({
-		grid: [10, 10],
+		grid: [5, 5],
 		helper: 'clone',
-		containment: '.canvas',
-		snap: true,
-		snapMode: 'inner'
+		containment: '.canvas'
 	});
 
 	$("#generate").button().click(function(){
