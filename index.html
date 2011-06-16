@@ -26,6 +26,69 @@
 	<button id="generate">Generate</button>
 </div>
 		</script>
+		<script id="propertiesTemplate" type="text/x-jquery-tmpl">
+		<div>
+			<div class="propertiesList">
+				<table>
+				{{each interfaces}}
+					<tr>
+						<th colspan="2">${$value}</th>
+					</tr>
+					{{if $value == 'DOMView'}}
+						{{tmpl({properties: {
+							layout: "layout"
+						}, control: control}) "propertiesList"}}
+					{{else $value == 'Touchable'}}
+						{{tmpl({properties: {
+							touchEnabled: "bool"
+						}, control: control}) "propertiesList"}}
+					{{else $value == 'Styleable'}}
+						{{tmpl({properties: {
+							backgroundColor: "color",
+							focusable: "bool",
+							backgroundImage: "file",
+							backgroundSelectedColor: "color",
+							backgroundSelectedImage: "file",
+							backgroundFocusedColor: "color",
+							backgroundFocusedImage: "color",
+							borderWidth: "int",
+							borderColor: "color",
+							borderRadius: "int",
+							fontVariant: "text",
+							fontStyle: "text",
+							fontWeight: "text",
+							fontSize: "fontSize",
+							fontFamily: "fontFamily",
+							opacity: "opacity",
+							zIndex: "int",
+							backgroundGradient: "backgroundGradient",
+							visible: "bool",
+							color: "color"
+						}, control: control}) "propertiesList"}}
+					{{/if}}
+				{{/each}}
+				{{tmpl({properties: properties, control: control}) "propertiesList"}}
+				</table>
+			</div>
+		</div>
+		</script>
+		<script id="propertiesListTemplate" type="text/x-jquery-tmpl">
+			{{each properties}}
+				{{tmpl({propertyName: $index, propertyType: properties[$value], propertyValue: control[$index]}) "property"}}
+			{{/each}}
+		</script>
+		<script id="propertyTemplate" type="text/x-jquery-tmpl">
+			<tr>
+				<td>${propertyName}</td>
+				<td>
+					<input type="text" name="${propertyName}" value="${propertyValue}" />
+					{{if propertyType == 'text'}}
+					{{else propertyType == 'int'}}
+					{{else}}
+					{{/if}}
+				</td>
+			</tr>
+		</script>
 		<script id="generatorTemplate" type="text/x-jquery-tmpl">
 			<div>
 				<textarea id="generator"></textarea>

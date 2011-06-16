@@ -68,3 +68,12 @@ button#generate {
 .ui-draggable {
 	z-index: 100;
 }
+
+.draggable {
+	border: 1px black dotted;
+}
+
+.propertiesList {
+	overflow: auto;
+	height: 30em;
+}

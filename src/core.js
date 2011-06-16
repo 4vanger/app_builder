@@ -87,6 +87,13 @@ $(function(){
 				return 'var lb' + controls.Label.counter++ + ' = Ti.UI.createLabel({\n' +
 					args2str(item.args) +
 					'\n});\nwin.add(el);\n\n';
+			},
+			interfaces: ['DOMView', 'EventDriven', 'Clickable', 'Touchable', 'Styleable', 'Positionable', 'Fontable'],
+			properties: {
+				'text': 'text',
+				'html': 'text',
+				'textAlign': 'text',
+				'textid': 'text'
 			}
 		},
 		TextArea: {
@@ -199,9 +206,29 @@ $(function(){
 		}).mouseenter();
 	};
 
+	var showProperties = function(typ, obj){
+		$.tmpl('properties', {
+			properties: controls[typ].properties,
+			interfaces: controls[typ].interfaces,
+			control: obj.control
+		}).dialog({
+			title: "Edit properties",
+			closeText: 'Close',
+			dialogClass: 'generatorDialog',
+			modal: true,
+			resizable: false
+		}).find('input').change(function(){
+			var el = $(this);
+			var propName = el.attr('name');
+			var val = el.val();
+			console.log('change', propName, val);
+			obj.control[propName] = val;
+		});
+	};
+
 	$.tmpl('main').appendTo(document.body);
 	var win = Ti.UI.currentWindow;
-	win.dom.className += " canvas"
+	win.dom.className += ' canvas';
 	var canvas = $('.canvas');
 	canvas.droppable({
 //		accept: '[data-libType]',
@@ -216,8 +243,9 @@ $(function(){
 			var el = ui.helper;
 			var libData = getLibDataByEl(ui.helper);
 			var pos = getLeftTop(event, ui);
-			var dd;
-			if(libData != null){
+			var obj;
+			var typ = el.attr('data-libType');
+			if(libData != null) {
 				libData.control.left = libData.args.left = pos.left;
 				libData.control.top = libData.args.top = pos.top;
 				// need to restore element cause it was removed on drag end
@@ -226,15 +254,15 @@ $(function(){
 					parent.appendChild(ui.helper[0]);
 					attachMouseenter(ui.helper[0]);
 				}, 0);
-				dd = ui.helper[0];
+				obj = libData;
 			} else {
-				var typ = el.attr('data-libType');
 				// create
-				var obj = controls[typ].create(pos.left, pos.top);
+				obj = controls[typ].create(pos.left, pos.top);
 				$(obj.control.dom).attr('data-libId', _library.length).attr('data-libType', typ);
 				
 				_library.push({
 					control: obj.control,
+					dom: obj.control.dom,
 					typ: typ,
 					args: obj.args
 				});
@@ -242,6 +270,8 @@ $(function(){
 				Ti.UI.currentWindow.add(obj.control);
 				attachMouseenter(obj.control.dom);
 			}
+			$(obj.control.dom).addClass("draggable");
+			showProperties(typ, obj);
 		}
 	});
 	$('.library [data-libType]').draggable({
@@ -254,7 +284,6 @@ $(function(){
 		var res = ["var win = Ti.UI.currentWindow;\n\n"];
 		for(var ii = 0; ii < _library.length; ii++){
 			var item = _library[ii];
-			console.log(item)
 			res.push(controls[item.typ].generate(item));
 		}
 
