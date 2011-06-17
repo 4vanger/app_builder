@@ -80,3 +80,23 @@ button#generate {
 	border-left: 0;
 	overflow: auto;
 }
+
+.properties ul {
+	list-style: none;
+}
+
+.properties .propertyName,
+.properties .eventName {
+	float: left;
+	min-width: 15em;
+}
+
+ul.propertiesList {
+	padding:  0;
+	margin:  1em;
+}
+
+.properties .interfaceName {
+	margin: 0.5em 0 0.1em 0;
+	padding:  0.1em 1em;
+}

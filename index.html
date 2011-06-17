@@ -33,64 +33,91 @@
 			<div>
 				<button id="highlightActive">Highlight</button>
 				<button id="removeActive">Remove</button>
-			<table>
-			{{each interfaces}}
-				<tr>
-					<th colspan="2" class="ui-widget-header">${$value}</th>
-				</tr>
-				{{if $value == 'DOMView'}}
-					{{tmpl({properties: {
-						layout: "layout"
-					}, events: [], control: control}) "propertiesList"}}
-				{{else $value == 'Touchable'}}
-					{{tmpl({properties: {
-						touchEnabled: "bool"
-					}, events: ["touchstart", "twofingertap", "", "", ""], control: control}) "propertiesList"}}
-				{{else $value == 'Styleable'}}
-					{{tmpl({properties: {
-						backgroundColor: "color",
-						focusable: "bool",
-						backgroundImage: "file",
-						backgroundSelectedColor: "color",
-						backgroundSelectedImage: "file",
-						backgroundFocusedColor: "color",
-						backgroundFocusedImage: "color",
-						borderWidth: "int",
-						borderColor: "color",
-						borderRadius: "int",
-						fontVariant: "text",
-						fontStyle: "text",
-						fontWeight: "text",
-						fontSize: "fontSize",
-						fontFamily: "fontFamily",
-						opacity: "opacity",
-						zIndex: "int",
-						backgroundGradient: "backgroundGradient",
-						visible: "bool",
-						color: "color"
-					}, events: [], control: control}) "propertiesList"}}
-				{{/if}}
-			{{/each}}
-			{{tmpl({properties: properties, control: control}) "propertiesList"}}
-			</table>
+				<ul class="propertiesList ui-widget">
+				{{tmpl({properties: properties, events: events, libData: libData}) 'propertiesList'}}
+				{{each interfaces}}
+					<li>
+						<h3 class="interfaceName ui-widget-header ui-state-default">${$value}</h3>
+						<ul class="interfaceList">
+							{{if $value == 'DOMView'}}
+								{{tmpl({properties: {
+									layout: 'layout'
+								}, events: [], libData: libData}) 'propertiesList'}}
+							{{else $value == 'Touchable'}}
+								{{tmpl({properties: {
+									touchEnabled: 'bool'
+								}, events: ['touchstart', 'twofingertap', 'touchmove', 'touchend', 'swipe', 'touchcancel', 'singletap', 'doubletap'], libData: libData}) 'propertiesList'}}
+							{{else $value == 'Clickable'}}
+								{{tmpl({properties: {}, events: ['click', 'dblclick'], libData: libData}) 'propertiesList'}}
+							{{else $value == 'Styleable'}}
+								{{tmpl({properties: {
+									backgroundColor: 'color',
+									focusable: 'bool',
+									backgroundImage: 'file',
+									backgroundSelectedColor: 'color',
+									backgroundSelectedImage: 'file',
+									backgroundFocusedColor: 'color',
+									backgroundFocusedImage: 'color',
+									borderWidth: 'int',
+									borderColor: 'color',
+									borderRadius: 'int',
+									fontVariant: 'text',
+									fontStyle: 'text',
+									fontWeight: 'text',
+									fontSize: 'fontSize',
+									fontFamily: 'fontFamily',
+									opacity: 'opacity',
+									zIndex: 'int',
+									backgroundGradient: 'backgroundGradient',
+									visible: 'bool',
+									color: 'color'
+								}, events: [], libData: libData}) 'propertiesList'}}
+							{{else $value == 'Positionable'}}
+								{{tmpl({properties: {
+									top: 'int',
+									bottom: 'int',
+									left: 'int',
+									right: 'int',
+									width: 'int',
+									height: 'int'
+								}, events: [], libData: libData}) 'propertiesList'}}
+							{{else $value == 'Interactable'}}
+								{{tmpl({properties: {
+								}, events: ['focus', 'blur', 'change', 'return'], libData: libData}) 'propertiesList'}}
+							{{/if}}
+						</ul>
+					</li>
+				{{/each}}
+				</ul>
 			</div>
 		</script>
-		<script id="propertiesListTemplate" type="text/x-jquery-tmpl">
+		<script id='propertiesListTemplate' type='text/x-jquery-tmpl'>
 			{{each properties}}
-				{{tmpl({propertyName: $index, propertyType: properties[$value], propertyValue: control[$index]}) "property"}}
+				{{tmpl({propertyName: $index, propertyType: $value, propertyValue: libData.control[$index]}) 'property'}}
+			{{/each}}
+			{{each events}}
+				{{tmpl({eventName: $value, eventValue: libData.events[$value]}) 'event'}}
 			{{/each}}
 		</script>
 		<script id="propertyTemplate" type="text/x-jquery-tmpl">
-			<tr>
-				<td>${propertyName}</td>
-				<td>
-					<input type="text" name="${propertyName}" value="${propertyValue}" />
-					{{if propertyType == 'text'}}
-					{{else propertyType == 'int'}}
+			<li>
+				<div class="propertyName">${propertyName}</div>
+				<span class="propertyValue">
+					{{if propertyType == 'bool'}}
+						<input type="checkbox" name="${propertyName}" ${propertyValue == true ? 'checked="checked"' : ''} />
 					{{else}}
+						<input type="text" name="${propertyName}" value="${propertyValue}" />
 					{{/if}}
-				</td>
-			</tr>
+				</span>
+			</li>
+		</script>
+		<script id="eventTemplate" type="text/x-jquery-tmpl">
+			<li>
+				<div class="eventName">${eventName}</div>
+				<span class="propertyValue">
+					<textarea name="${eventNameName}">{{html eventValue}}</textarea>
+				</span>
+			</li>
 		</script>
 		<script id="generatorTemplate" type="text/x-jquery-tmpl">
 			<div>
@@ -111,6 +138,7 @@
 		</script>
 
 		<script type="text/javascript" src="titanium.js"></script>
+		<script type="text/javascript" src="src/controls.js"></script>
 		<script type="text/javascript" src="src/core.js"></script>
 	</body>
 </html>

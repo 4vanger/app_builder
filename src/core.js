@@ -28,168 +28,9 @@ $(function(){
 		return null;
 	};
 
-	var args2str = function(args){
-		var str = [];
-		for(var arg in args){
-			var line = [];
-			line.push('\t');
-			if(/^\w[\w\d]*$/.test(arg)){
-				line.push(arg);
-			} else {
-				line.push('\'');
-				line.push(arg.replace(/'/g, '\\\''));
-				line.push('\'');
-			}
-			line.push(': ');
-			var value = args[arg];
-			if(typeof value === 'string'){
-				line.push('\'');
-				line.push(value.replace(/\\/g, '\\\\').replace(/'/g, '\\\''));
-				line.push('\'');
-			} else if(typeof value === 'number'){
-				line.push(value);
-			}
-
-			str.push(line.join(''));
-		}
-		return str.join(',\n');
-	};
-
-	var controls = {
-		TextField: {
-			counter: 0,
-			create: function(left, top){
-				var args = {
-					left: left,
-					top: top
-				};
-				var el = Ti.UI.createTextField(args);
-				el.dom.readOnly = true;
-				return {
-					control: el,
-					args: args
-				};
-			},
-			generate: function(item){
-				return 'var tf' + controls.TextField.counter + ' = Ti.UI.createTextField({\n' +
-					args2str(item.args) +
-					'\n});\nwin.add(tf' + controls.TextField.counter++ +');\n\n';
-			}
-		},
-		Label: {
-			counter: 0,
-			create: function(left, top){
-				var args = {
-					left: left,
-					top: top,
-					text: prompt('Label text')
-				};
-
-				return {
-					control: Ti.UI.createLabel(args),
-					args: args
-				};
-			},
-			generate: function(item){
-				return 'var lb' + controls.Label.counter + ' = Ti.UI.createLabel({\n' +
-					args2str(item.args) +
-					'\n});\nwin.add(lb' + controls.Label.counter++ + ');\n\n';
-			},
-			interfaces: ['DOMView', 'EventDriven', 'Clickable', 'Touchable', 'Styleable', 'Positionable', 'Fontable'],
-			properties: {
-				'text': 'text',
-				'html': 'text',
-				'textAlign': 'text',
-				'textid': 'text'
-			}
-		},
-		TextArea: {
-			counter: 0,
-			create: function(left, top){
-				var args = {
-					left: left,
-					top: top
-				};
-				var el = Ti.UI.createTextArea(args);
-				el.dom.readOnly = true;
-				return {
-					control: el,
-					args: args
-				};
-			},
-			generate: function(item){
-				return 'var ta' + controls.TextArea.counter + ' = Ti.UI.createTextArea({\n' +
-					args2str(item.args) +
-					'\n});\nwin.add(ta' + controls.TextArea.counter++ + ');\n\n';
-			}
-		},
-		Switch: {
-			counter: 0,
-			create: function(left, top){
-				var args = {
-					left: left,
-					top: top
-				};
-
-				var el = Ti.UI.createSwitch(args);
-				el.dom.readOnly = true;
-				return {
-					control: el,
-					args: args
-				};
-			},
-			generate: function(item){
-				return 'var sw' + controls.Switch.counter + ' = Ti.UI.createSwitch({\n' +
-					args2str(item.args) +
-					'\n});\nwin.add(sw' + controls.Switch.counter++ + ');\n\n';
-			}
-		},
-		Button: {
-			counter: 0,
-			create: function(left, top){
-				var args = {
-					title: prompt("Button title"),
-					left: left,
-					top: top
-				};
-
-				return {
-					control: Ti.UI.createButton(args),
-					args: args
-				};
-			},
-			generate: function(item){
-				return 'var bt' + controls.Button.counter + ' = Ti.UI.createButton({\n' +
-					args2str(item.args) +
-					'\n});\nwin.add(bt' + controls.Button.counter++ + ');\n\n';
-			}
-		},
-		SearchBar: {
-			counter: 0,
-			create: function(left, top){
-				var args = {
-					left: left,
-					top: top
-				};
-
-				var el = Ti.UI.createSearchBar(args);
-				el.dom.readOnly = true;
-				return {
-					control: el,
-					args: args
-				};
-			},
-			generate: function(item){
-				return 'var sb' + controls.SearchBar.counter + ' = Ti.UI.createSearchBar({\n' +
-					args2str(item.args) +
-					'\n});\nwin.add(sb' + controls.SearchBar.counter++ + ');\n\n';
-			}
-		}
-	};
-
 	var _library = [];
 
-	var attachMouseenter = function(dd){
+	var attachMouseenter = function(dd, libData){
 		dd = $(dd);
 		// put layover element cause Webkit doesn't allow to DND form elements
 		dd.mouseenter(function(){
@@ -200,6 +41,10 @@ $(function(){
 				.width(dd.outerWidth())
 				.height(dd.outerHeight())
 				.mouseleave(function(){$(this).remove();})
+				.mousedown(function(){
+					_activeObj = libData;
+					showProperties();
+				})
 				.draggable({
 					grid: [5, 5],
 					helper: function(event){
@@ -210,7 +55,7 @@ $(function(){
 					},
 					containment: '.canvas'
 				});
-		}).mouseenter();
+		}).mouseenter()
 	};
 	
 	var _activeObj = null;
@@ -219,35 +64,43 @@ $(function(){
 			return;
 		}
 		var obj = _activeObj;
-		hideProperties();
+		clearProperties();
 		_activeObj = obj;
 		$.tmpl('properties', {
 			properties: controls[_activeObj.typ].properties,
 			interfaces: controls[_activeObj.typ].interfaces,
-			control: _activeObj.control
-		}).appendTo('#propertiesContainer').find('button').button();
+			events: controls[_activeObj.typ].events,
+			libData: _activeObj
+		}).appendTo('#propertiesContainer')
+		.find('button').button().end()
+		.find(".interfaceName").click(function(){$(this).next("ul").slideToggle()});
 	};
 
-	var hideProperties = function(){
+	var clearProperties = function(){
 		_activeObj = null;
 		clip.destroy();
 		$('#propertiesContainer').html('');
 	};
 
 	$('#propertiesContainer input').live('change keyup', function(){
+		if(_activeObj == null){
+			return;
+		}
 		var el = $(this);
 		var propName = el.attr('name');
 		var val = el.val();
 		_activeObj.control[propName] = val;
 	});
 	$('#propertiesContainer #highlightActive').live('click', function(){
-		$(_activeObj.dom).css('opacity', 1)
+		$(_activeObj.dom).addClass('ui-state-highlight').css('opacity', 1)
 			.animate({'opacity': 0.3}, 300).animate({'opacity': 1}, 300)
-			.animate({'opacity': 0.3}, 300).animate({'opacity': 1}, 300);
+			.animate({'opacity': 0.3}, 300, function(){$(_activeObj.dom).removeClass('ui-state-highlight')}).animate({'opacity': 1}, 300);
 	});
 	$('#propertiesContainer #removeActive').live('click', function(){
 		win.remove(_activeObj.control);
-		hideProperties();
+
+		_library[_activeObj.libId] = null;
+		clearProperties();
 	});
 
 	$.tmpl('main').appendTo(document.body);
@@ -275,7 +128,7 @@ $(function(){
 				var parent = ui.helper[0].parentNode;
 				setTimeout(function(){
 					parent.appendChild(ui.helper[0]);
-					attachMouseenter(ui.helper[0]);
+					attachMouseenter(ui.helper[0], libData);
 				}, 0);
 			} else {
 				// create
@@ -283,19 +136,22 @@ $(function(){
 				$(obj.control.dom).attr('data-libId', _library.length).attr('data-libType', typ);
 
 				libData = {
+					libId: _library.length,
 					control: obj.control,
 					dom: obj.control.dom,
 					typ: typ,
-					args: obj.args
+					args: obj.args,
+					events: {}
 				};
 				_library.push(libData);
 
 				Ti.UI.currentWindow.add(obj.control);
-				attachMouseenter(obj.control.dom);
+				attachMouseenter(obj.control.dom, libData);
+				_activeObj = libData;
+				showProperties();
 			}
 			$(libData.dom).addClass("draggable");
-			_activeObj = libData;
-			showProperties();
+
 		}
 	});
 	$('.library [data-libType]').draggable({
@@ -313,11 +169,14 @@ $(function(){
 		var res = ["var win = Ti.UI.currentWindow;\n\n"];
 		for(var ii = 0; ii < _library.length; ii++){
 			var item = _library[ii];
+			if(item == null){
+				continue;
+			}
 			res.push(controls[item.typ].generate(item));
 		}
 
 		res = res.join('');
-		hideProperties();
+		clearProperties();
 		$.tmpl('generator')
 			.find('textarea').val(res).end()
 			.find('button').button().end()
