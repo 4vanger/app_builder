@@ -1,5 +1,12 @@
 $(function(){
 	initTemplates();
+	ZeroClipboard.setMoviePath( '3rd/zeroclipboard/ZeroClipboard.swf' );
+	var clip = new ZeroClipboard.Client();
+	clip.setHandCursor( true );
+	clip.addEventListener('mouseDown', function (client) {
+		clip.setText($('#generator').val());
+	});
+
 	$('#loading').remove();
 
 	var getLeftTop = function(event, ui){
@@ -205,26 +212,43 @@ $(function(){
 				});
 		}).mouseenter();
 	};
-
-	var showProperties = function(typ, obj){
+	
+	var _activeObj = null;
+	var showProperties = function(){
+		if(_activeObj == null){
+			return;
+		}
+		var obj = _activeObj;
+		hideProperties();
+		_activeObj = obj;
 		$.tmpl('properties', {
-			properties: controls[typ].properties,
-			interfaces: controls[typ].interfaces,
-			control: obj.control
-		}).dialog({
-			title: "Edit properties",
-			closeText: 'Close',
-			dialogClass: 'generatorDialog',
-			modal: true,
-			resizable: false
-		}).find('input').change(function(){
-			var el = $(this);
-			var propName = el.attr('name');
-			var val = el.val();
-			console.log('change', propName, val);
-			obj.control[propName] = val;
-		});
+			properties: controls[_activeObj.typ].properties,
+			interfaces: controls[_activeObj.typ].interfaces,
+			control: _activeObj.control
+		}).appendTo('#propertiesContainer').find('button').button();
 	};
+
+	var hideProperties = function(){
+		_activeObj = null;
+		clip.destroy();
+		$('#propertiesContainer').html('');
+	};
+
+	$('#propertiesContainer input').live('change keyup', function(){
+		var el = $(this);
+		var propName = el.attr('name');
+		var val = el.val();
+		_activeObj.control[propName] = val;
+	});
+	$('#propertiesContainer #highlightActive').live('click', function(){
+		$(_activeObj.dom).css('opacity', 1)
+			.animate({'opacity': 0.3}, 300).animate({'opacity': 1}, 300)
+			.animate({'opacity': 0.3}, 300).animate({'opacity': 1}, 300);
+	});
+	$('#propertiesContainer #removeActive').live('click', function(){
+		win.remove(_activeObj.control);
+		hideProperties();
+	});
 
 	$.tmpl('main').appendTo(document.body);
 	var win = Ti.UI.currentWindow;
@@ -243,7 +267,6 @@ $(function(){
 			var el = ui.helper;
 			var libData = getLibDataByEl(ui.helper);
 			var pos = getLeftTop(event, ui);
-			var obj;
 			var typ = el.attr('data-libType');
 			if(libData != null) {
 				libData.control.left = libData.args.left = pos.left;
@@ -254,24 +277,25 @@ $(function(){
 					parent.appendChild(ui.helper[0]);
 					attachMouseenter(ui.helper[0]);
 				}, 0);
-				obj = libData;
 			} else {
 				// create
-				obj = controls[typ].create(pos.left, pos.top);
+				var obj = controls[typ].create(pos.left, pos.top);
 				$(obj.control.dom).attr('data-libId', _library.length).attr('data-libType', typ);
-				
-				_library.push({
+
+				libData = {
 					control: obj.control,
 					dom: obj.control.dom,
 					typ: typ,
 					args: obj.args
-				});
+				};
+				_library.push(libData);
 
 				Ti.UI.currentWindow.add(obj.control);
 				attachMouseenter(obj.control.dom);
 			}
-			$(obj.control.dom).addClass("draggable");
-			showProperties(typ, obj);
+			$(libData.dom).addClass("draggable");
+			_activeObj = libData;
+			showProperties();
 		}
 	});
 	$('.library [data-libType]').draggable({
@@ -288,12 +312,12 @@ $(function(){
 		}
 
 		res = res.join('');
-		$.tmpl('generator').find('textarea').val(res).end().dialog({
-			title: "Get your code",
-			closeText: 'Close',
-			dialogClass: 'generatorDialog',
-			modal: true,
-			resizable: false
-		});
+		hideProperties();
+		$.tmpl('generator')
+			.find('textarea').val(res).end()
+			.find('button').button().end()
+			.appendTo($('#propertiesContainer').html(''));
+		clip.glue($('#copyGenerator').get(0));
+		clip.show();
 	})
 });
