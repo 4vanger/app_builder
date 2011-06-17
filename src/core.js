@@ -71,9 +71,9 @@ $(function(){
 				};
 			},
 			generate: function(item){
-				return 'var tf' + controls.TextField.counter++ + ' = Ti.UI.createTextField({\n' +
+				return 'var tf' + controls.TextField.counter + ' = Ti.UI.createTextField({\n' +
 					args2str(item.args) +
-					'\n});\nwin.add(el);\n\n';
+					'\n});\nwin.add(tf' + controls.TextField.counter++ +');\n\n';
 			}
 		},
 		Label: {
@@ -91,9 +91,9 @@ $(function(){
 				};
 			},
 			generate: function(item){
-				return 'var lb' + controls.Label.counter++ + ' = Ti.UI.createLabel({\n' +
+				return 'var lb' + controls.Label.counter + ' = Ti.UI.createLabel({\n' +
 					args2str(item.args) +
-					'\n});\nwin.add(el);\n\n';
+					'\n});\nwin.add(lb' + controls.Label.counter++ + ');\n\n';
 			},
 			interfaces: ['DOMView', 'EventDriven', 'Clickable', 'Touchable', 'Styleable', 'Positionable', 'Fontable'],
 			properties: {
@@ -118,9 +118,9 @@ $(function(){
 				};
 			},
 			generate: function(item){
-				return 'var ta' + controls.TextArea.counter++ + ' = Ti.UI.createTextArea({\n' +
+				return 'var ta' + controls.TextArea.counter + ' = Ti.UI.createTextArea({\n' +
 					args2str(item.args) +
-					'\n});\nwin.add(el);\n\n';
+					'\n});\nwin.add(ta' + controls.TextArea.counter++ + ');\n\n';
 			}
 		},
 		Switch: {
@@ -139,9 +139,9 @@ $(function(){
 				};
 			},
 			generate: function(item){
-				return 'var sw' + controls.Switch.counter++ + ' = Ti.UI.createSwitch({\n' +
+				return 'var sw' + controls.Switch.counter + ' = Ti.UI.createSwitch({\n' +
 					args2str(item.args) +
-					'\n});\nwin.add(el);\n\n';
+					'\n});\nwin.add(sw' + controls.Switch.counter++ + ');\n\n';
 			}
 		},
 		Button: {
@@ -159,9 +159,9 @@ $(function(){
 				};
 			},
 			generate: function(item){
-				return 'var bt' + controls.Button.counter++ + ' = Ti.UI.createButton({\n' +
+				return 'var bt' + controls.Button.counter + ' = Ti.UI.createButton({\n' +
 					args2str(item.args) +
-					'\n});\nwin.add(el);\n\n';
+					'\n});\nwin.add(bt' + controls.Button.counter++ + ');\n\n';
 			}
 		},
 		SearchBar: {
@@ -180,9 +180,9 @@ $(function(){
 				};
 			},
 			generate: function(item){
-				return 'var sb' + controls.SearchBar.counter++ + ' = Ti.UI.createSearchBar({\n' +
+				return 'var sb' + controls.SearchBar.counter + ' = Ti.UI.createSearchBar({\n' +
 					args2str(item.args) +
-					'\n});\nwin.add(el);\n\n';
+					'\n});\nwin.add(sb' + controls.SearchBar.counter++ + ');\n\n';
 			}
 		}
 	};
@@ -305,6 +305,11 @@ $(function(){
 	});
 
 	$("#generate").button().click(function(){
+		// clean all counters
+		for(var typ in controls){
+			controls[typ].counter = 0;
+		}
+
 		var res = ["var win = Ti.UI.currentWindow;\n\n"];
 		for(var ii = 0; ii < _library.length; ii++){
 			var item = _library[ii];
