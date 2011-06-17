@@ -70,7 +70,9 @@ $(function(){
 			properties: controls[_activeObj.typ].properties,
 			interfaces: controls[_activeObj.typ].interfaces,
 			events: controls[_activeObj.typ].events,
-			libData: _activeObj
+			libData: _activeObj,
+			propertiesData: properties,
+			interfacesData: interfaces
 		}).appendTo('#propertiesContainer')
 		.find('button').button().end()
 		.find(".interfaceName").click(function(){$(this).next("ul").slideToggle()});
@@ -89,6 +91,7 @@ $(function(){
 		var el = $(this);
 		var propName = el.attr('name');
 		var val = el.val();
+		controls[_activeObj.typ].
 		_activeObj.control[propName] = val;
 	});
 	$('#propertiesContainer #highlightActive').live('click', function(){

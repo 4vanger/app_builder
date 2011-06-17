@@ -34,57 +34,12 @@
 				<button id="highlightActive">Highlight</button>
 				<button id="removeActive">Remove</button>
 				<ul class="propertiesList ui-widget">
-				{{tmpl({properties: properties, events: events, libData: libData}) 'propertiesList'}}
+				{{tmpl({properties: properties, events: events, libData: libData, propertiesData: propertiesData}) 'propertiesList'}}
 				{{each interfaces}}
 					<li>
 						<h3 class="interfaceName ui-widget-header ui-state-default">${$value}</h3>
 						<ul class="interfaceList">
-							{{if $value == 'DOMView'}}
-								{{tmpl({properties: {
-									layout: 'layout'
-								}, events: [], libData: libData}) 'propertiesList'}}
-							{{else $value == 'Touchable'}}
-								{{tmpl({properties: {
-									touchEnabled: 'bool'
-								}, events: ['touchstart', 'twofingertap', 'touchmove', 'touchend', 'swipe', 'touchcancel', 'singletap', 'doubletap'], libData: libData}) 'propertiesList'}}
-							{{else $value == 'Clickable'}}
-								{{tmpl({properties: {}, events: ['click', 'dblclick'], libData: libData}) 'propertiesList'}}
-							{{else $value == 'Styleable'}}
-								{{tmpl({properties: {
-									backgroundColor: 'color',
-									focusable: 'bool',
-									backgroundImage: 'file',
-									backgroundSelectedColor: 'color',
-									backgroundSelectedImage: 'file',
-									backgroundFocusedColor: 'color',
-									backgroundFocusedImage: 'color',
-									borderWidth: 'int',
-									borderColor: 'color',
-									borderRadius: 'int',
-									fontVariant: 'text',
-									fontStyle: 'text',
-									fontWeight: 'text',
-									fontSize: 'fontSize',
-									fontFamily: 'fontFamily',
-									opacity: 'opacity',
-									zIndex: 'int',
-									backgroundGradient: 'backgroundGradient',
-									visible: 'bool',
-									color: 'color'
-								}, events: [], libData: libData}) 'propertiesList'}}
-							{{else $value == 'Positionable'}}
-								{{tmpl({properties: {
-									top: 'int',
-									bottom: 'int',
-									left: 'int',
-									right: 'int',
-									width: 'int',
-									height: 'int'
-								}, events: [], libData: libData}) 'propertiesList'}}
-							{{else $value == 'Interactable'}}
-								{{tmpl({properties: {
-								}, events: ['focus', 'blur', 'change', 'return'], libData: libData}) 'propertiesList'}}
-							{{/if}}
+							{{tmpl({properties: interfacesData[$value].properties, events: interfacesData[$value].events, libData: libData, propertiesData: propertiesData}) 'propertiesList'}}
 						</ul>
 					</li>
 				{{/each}}
@@ -93,7 +48,7 @@
 		</script>
 		<script id='propertiesListTemplate' type='text/x-jquery-tmpl'>
 			{{each properties}}
-				{{tmpl({propertyName: $index, propertyType: $value, propertyValue: libData.control[$index]}) 'property'}}
+				{{tmpl({propertyName: $index, propertyType: $value, propertyValue: libData.control[$index], propertiesData: propertiesData}) 'property'}}
 			{{/each}}
 			{{each events}}
 				{{tmpl({eventName: $value, eventValue: libData.events[$value]}) 'event'}}
@@ -102,13 +57,7 @@
 		<script id="propertyTemplate" type="text/x-jquery-tmpl">
 			<li>
 				<div class="propertyName">${propertyName}</div>
-				<span class="propertyValue">
-					{{if propertyType == 'bool'}}
-						<input type="checkbox" name="${propertyName}" ${propertyValue == true ? 'checked="checked"' : ''} />
-					{{else}}
-						<input type="text" name="${propertyName}" value="${propertyValue}" />
-					{{/if}}
-				</span>
+				{{tmpl({name: propertyName, value: propertyValue}) propertiesData[propertyType] == null ? "textProperty" : propertiesData[propertyType].template}}
 			</li>
 		</script>
 		<script id="eventTemplate" type="text/x-jquery-tmpl">
@@ -124,6 +73,12 @@
 				<button id="copyGenerator">Copy</button>
 				<textarea id="generator"></textarea>
 			</div>
+		</script>
+		<script id="textPropertyTemplate" type="text/x-jquery-tmpl">
+			<input type="text" name="${name}" value="${value}"/>
+		</script>
+		<script id="boolPropertyTemplate" type="text/x-jquery-tmpl">
+			<input type="checkbox" name="${name}" ${value == true ? 'checked="checked"' : ''} />
 		</script>
 		<script id="messageTemplate" type="text/x-jquery-tmpl">
 			<div class="message ${className} ui-corner-all">

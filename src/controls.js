@@ -25,6 +25,76 @@ var args2str = function(args){
 	return str.join(',\n');
 };
 
+var properties = {
+	text: {
+		template: "textProperty",
+		getValue: function(el){return el.value;}
+	},
+	int: {
+		template: "textProperty",
+		getValue: function(el){return parseInt(el.value);}
+	},
+	bool: {
+		template: "boolProperty",
+		getValue: function(el){return el.checked;}
+	}
+};
+
+var interfaces = {
+	DOMView: {
+		properties: {layout: 'layout'},
+		events: []
+	},
+	Touchable: {
+		properties: {touchEnabled: 'bool'},
+		events: ['touchstart', 'twofingertap', 'touchmove', 'touchend', 'swipe', 'touchcancel', 'singletap', 'doubletap']
+	},
+	Clickable: {
+		properties: {},
+		events: ['click', 'dblclick']
+	},
+	Styleable: {
+		properties: {
+			backgroundColor: 'color',
+			focusable: 'bool',
+			backgroundImage: 'file',
+			backgroundSelectedColor: 'color',
+			backgroundSelectedImage: 'file',
+			backgroundFocusedColor: 'color',
+			backgroundFocusedImage: 'color',
+			borderWidth: 'int',
+			borderColor: 'color',
+			borderRadius: 'int',
+			fontVariant: 'text',
+			fontStyle: 'text',
+			fontWeight: 'text',
+			fontSize: 'fontSize',
+			fontFamily: 'fontFamily',
+			opacity: 'opacity',
+			zIndex: 'int',
+			backgroundGradient: 'backgroundGradient',
+			visible: 'bool',
+			color: 'color'
+		},
+		events: []
+	},
+	Positionable: {
+		properties: {
+			top: 'int',
+			bottom: 'int',
+			left: 'int',
+			right: 'int',
+			width: 'int',
+			height: 'int'
+		},
+		events: []
+	},
+	Interactable: {
+		properties: {},
+		events: ['focus', 'blur', 'change', 'return']
+	}
+};
+
 var controls = {
 	TextField: {
 		counter: 0,
