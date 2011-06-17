@@ -91,13 +91,12 @@ $(function(){
 		var el = $(this);
 		var propName = el.attr('name');
 		var val = el.val();
-		controls[_activeObj.typ].
-		_activeObj.control[propName] = val;
+		_activeObj.control[propName] = properties[el.attr('data-propertyType')].getValue(this);
 	});
 	$('#propertiesContainer #highlightActive').live('click', function(){
-		$(_activeObj.dom).addClass('ui-state-highlight').css('opacity', 1)
+		$(_activeObj.dom).addClass('ui-state-active').css('opacity', 1)
 			.animate({'opacity': 0.3}, 300).animate({'opacity': 1}, 300)
-			.animate({'opacity': 0.3}, 300, function(){$(_activeObj.dom).removeClass('ui-state-highlight')}).animate({'opacity': 1}, 300);
+			.animate({'opacity': 0.3}, 300, function(){$(_activeObj.dom).removeClass('ui-state-active')}).animate({'opacity': 1}, 300);
 	});
 	$('#propertiesContainer #removeActive').live('click', function(){
 		win.remove(_activeObj.control);

@@ -57,7 +57,7 @@
 		<script id="propertyTemplate" type="text/x-jquery-tmpl">
 			<li>
 				<div class="propertyName">${propertyName}</div>
-				{{tmpl({name: propertyName, value: propertyValue}) propertiesData[propertyType] == null ? "textProperty" : propertiesData[propertyType].template}}
+				{{tmpl({name: propertyName, value: propertyValue, propertyType: propertyType}) propertiesData[propertyType] == null ? "textProperty" : propertiesData[propertyType].template}}
 			</li>
 		</script>
 		<script id="eventTemplate" type="text/x-jquery-tmpl">
@@ -75,10 +75,10 @@
 			</div>
 		</script>
 		<script id="textPropertyTemplate" type="text/x-jquery-tmpl">
-			<input type="text" name="${name}" value="${value}"/>
+			<input data-propertyType="${propertyType}" type="text" name="${name}" value="${value}"/>
 		</script>
 		<script id="boolPropertyTemplate" type="text/x-jquery-tmpl">
-			<input type="checkbox" name="${name}" ${value == true ? 'checked="checked"' : ''} />
+			<input data-propertyType="${propertyType}" type="checkbox" name="${name}" ${value == true ? 'checked="checked"' : ''} />
 		</script>
 		<script id="messageTemplate" type="text/x-jquery-tmpl">
 			<div class="message ${className} ui-corner-all">
