@@ -84,13 +84,13 @@
 			<input data-propertyType="${propertyType}" type="checkbox" name="${name}" ${value == true ? 'checked="checked"' : ''} />
 		</script>
 		<script id="showLibraryTemplate" type="text/x-jquery-tmpl">
-			<ul class="libraryItems">
+			<ol class="libraryItems">
 				{{each library}}
 					{{if $value != null}}
 						<li data-libId="${$value.libId}">${$value.typ}</li>
 					{{/if}}
 				{{/each}}
-			</div>
+			</ol>
 		</script>
 		<script id="messageTemplate" type="text/x-jquery-tmpl">
 			<div class="message ${className} ui-corner-all">
