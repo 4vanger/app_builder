@@ -93,10 +93,15 @@ $(function(){
 		var val = el.val();
 		_activeObj.control[propName] = properties[el.attr('data-propertyType')].getValue(this);
 	});
+
+	var highlightEl = function(el){
+		$(el).addClass('ui-state-active').css('opacity', 1)
+		.animate({'opacity': 0.3}, 300).animate({'opacity': 1}, 300)
+		.animate({'opacity': 0.3}, 300, function(){$(this).removeClass('ui-state-active')}).animate({'opacity': 1}, 300);
+	};
+
 	$('#propertiesContainer #highlightActive').live('click', function(){
-		$(_activeObj.dom).addClass('ui-state-active').css('opacity', 1)
-			.animate({'opacity': 0.3}, 300).animate({'opacity': 1}, 300)
-			.animate({'opacity': 0.3}, 300, function(){$(_activeObj.dom).removeClass('ui-state-active')}).animate({'opacity': 1}, 300);
+		highlightEl(_activeObj.dom);
 	});
 	$('#propertiesContainer #removeActive').live('click', function(){
 		win.remove(_activeObj.control);
@@ -162,6 +167,25 @@ $(function(){
 		containment: '.canvas'
 	});
 
+	$("#showLibrary").button().click(function(){
+		clearProperties();
+		$.tmpl('showLibrary', {library: _library}).appendTo('#propertiesContainer');
+	});
+	$('#propertiesContainer .libraryItems li').live('mouseenter', function(){
+		var el = _library[parseInt($(this).attr('data-libId'))];
+		if(el == null){
+			return;
+		}
+		highlightEl(el.dom);
+	}).live('click', function(){
+		var libData = _library[parseInt($(this).attr('data-libId'))];
+		if(libData == null){
+			return;
+		}
+		_activeObj = libData;
+		showProperties();
+	});
+
 	$("#generate").button().click(function(){
 		// clean all counters
 		for(var typ in controls){
@@ -182,7 +206,7 @@ $(function(){
 		$.tmpl('generator')
 			.find('textarea').val(res).end()
 			.find('button').button().end()
-			.appendTo($('#propertiesContainer').html(''));
+			.appendTo('#propertiesContainer');
 		clip.glue($('#copyGenerator').get(0));
 		clip.show();
 	})

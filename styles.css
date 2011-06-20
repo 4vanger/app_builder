@@ -49,10 +49,10 @@ body {
 	background-color: white;
 }
 
-button#generate {
+.buttons {
 	position: absolute;
-	right: 1em;
 	top: 1em;
+	right: 1em;
 	font-size: 1em;
 }
 

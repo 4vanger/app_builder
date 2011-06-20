@@ -24,7 +24,10 @@
 		<li><div class="libControl" data-libType="Button">Button</div></li>
 		<li><div class="libControl" data-libType="SearchBar">Search bar</div></li>
 	</ul>
-	<button id="generate">Generate</button>
+	<div class="buttons">
+		<button id="showLibrary">Library</button>
+		<button id="generate">Generate</button>
+	</div>
 </div>
 <div id="propertiesContainer" class="properties ui-widget-content">
 </div>
@@ -79,6 +82,15 @@
 		</script>
 		<script id="boolPropertyTemplate" type="text/x-jquery-tmpl">
 			<input data-propertyType="${propertyType}" type="checkbox" name="${name}" ${value == true ? 'checked="checked"' : ''} />
+		</script>
+		<script id="showLibraryTemplate" type="text/x-jquery-tmpl">
+			<ul class="libraryItems">
+				{{each library}}
+					{{if $value != null}}
+						<li data-libId="${$value.libId}">${$value.typ}</li>
+					{{/if}}
+				{{/each}}
+			</div>
 		</script>
 		<script id="messageTemplate" type="text/x-jquery-tmpl">
 			<div class="message ${className} ui-corner-all">
