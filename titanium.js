@@ -293,6 +293,10 @@ Ti._5.createUUID = function(){
 	}).toUpperCase();
 };
 
+Ti._5.getArguments = function(){
+	return args;
+};
+
 var _sessionId = sessionStorage.getItem('html5_sessionId');
 if(_sessionId == null){
 	_sessionId = Ti._5.createUUID();
@@ -498,9 +502,9 @@ Ti._5.sendAnalytics = function(isUrgent){
 			obj.fireEvent('change', oEvent);
 		};
 		
-		obj.dom.addEventListener('change', _changeListener);
-		obj.dom.addEventListener('input', _changeListener);
-		obj.dom.addEventListener('paste', _changeListener);
+		obj.dom.addEventListener('change', _changeListener, false);
+		obj.dom.addEventListener('input', _changeListener, false);
+		obj.dom.addEventListener('paste', _changeListener, false);
 
 		if (!isNotSearch) {
 			obj.dom.addEventListener('keyup', function(event) {
@@ -514,7 +518,7 @@ Ti._5.sendAnalytics = function(isUrgent){
 					}
 					obj.fireEvent('return', oEvent);
 				}
-			});
+			}, false);
 		}
 		
 	}
@@ -538,7 +542,7 @@ Ti._5.sendAnalytics = function(isUrgent){
 				y			: event.pageY
 			};
 			obj.fireEvent('click', oEvent);
-		});
+		}, false);
 		
 		obj.dom.addEventListener('dblclick', function(event) {
 			var oEvent = {
@@ -549,7 +553,7 @@ Ti._5.sendAnalytics = function(isUrgent){
 				y			: event.pageY
 			};
 			obj.fireEvent('dblclick', oEvent);
-		});
+		}, false);
 	}
 	
 })(Ti._5);	
@@ -802,7 +806,7 @@ Ti._5.sendAnalytics = function(isUrgent){
 
 		Object.defineProperty(obj, 'borderRadius', {
 			get: function() {
-				return parseInt(obj.dom.style['-webkit-border-radius']);
+				return obj.dom.style['-webkit-border-radius'] ? parseInt(obj.dom.style['-webkit-border-radius']) : "";
 			},
 			set: function(val) {
 				obj.dom.style['-webkit-border-radius'] = parseInt(val)+'px';
@@ -905,17 +909,22 @@ Ti._5.sendAnalytics = function(isUrgent){
 				return obj.dom.style.zIndex;
 			},
 			set: function(val) {
-				obj.dom.style.position = 'absolute';
-				obj.dom.style.zIndex = val;
+				if (val != obj.zIndex) {
+					obj.dom.style.position = 'absolute';
+					obj.dom.style.zIndex = val;
+				}
 			}
 		});
 		
-		var _gradient = null;
+		var _gradient = {};
 		Object.defineProperty(obj, 'backgroundGradient', {
 			get: function() {
 				return _gradient ? _gradient : obj.dom.style['background'];
 			},
 			set: function(val) {
+				if (!val) {
+					return;
+				}
 				var type = val['type'] ? val['type']+',' : 'linear,';
 				var startPoint = val['startPoint'] ? val['startPoint'].x+' '+val['startPoint'].y+',' : '0% 0%,';
 				var endPoint = val['endPoint'] ? val['endPoint'].x+' '+val['endPoint'].y+',' : '100% 100%,';
@@ -955,6 +964,14 @@ Ti._5.sendAnalytics = function(isUrgent){
 					var sStyle = [type, startPoint, startRadius, endPoint, endRadius, colors].join(' ').replace(/,\s$/g, '');
 				}
 				obj.dom.style['background'] = '-webkit-gradient(' + sStyle + ')';
+				// If gradient removed, we need to return background color and image
+				if (
+					'linear,' == type && '0% 0%,' == startPoint && '100% 100%,' == endPoint &&
+					'' == colors
+				) {
+					obj.backgroundColor = _backgroundColor;
+					obj.backgroundImage = _backgroundImage;
+				}
 			}
 		});
 		
@@ -1071,7 +1088,7 @@ Ti._5.sendAnalytics = function(isUrgent){
 		}
 		
 		// Android support touch events
-		if (-1 < Titanium.Platform.osname.indexOf('Android')) {
+		if (-1 < Titanium.Platform.osname.indexOf('android')) {
 			bEmulate = false;
 		}
 		
@@ -1110,14 +1127,19 @@ Ti._5.sendAnalytics = function(isUrgent){
 			_endPoint = oEvent.globalPoint;
 			obj.fireEvent('touchstart', oEvent);
 			if (event.touches && 2 == event.touches.length) {
-				oEvent.type = 'twofingertap';
-				obj.fireEvent('twofingertap', oEvent);
+				obj.fireEvent('twofingertap',  {
+					globalPoint	: { x:xCoord, y:yCoord }, 
+					source		: obj,
+					type		: 'twofingertap',
+					x			: xCoord,
+					y			: yCoord
+				});
 			}
 		};
 		if (bEmulate) {
-			obj.dom.addEventListener('mousedown', _fTouchStart);
+			obj.dom.addEventListener('mousedown', _fTouchStart, false);
 		} else {
-			obj.dom.addEventListener('touchstart',_fTouchStart);
+			obj.dom.addEventListener('touchstart',_fTouchStart, false);
 		}
 		
 		var _endPoint = null;
@@ -1138,9 +1160,9 @@ Ti._5.sendAnalytics = function(isUrgent){
 			obj.fireEvent('touchmove', oEvent);
 		}
 		if (bEmulate) {
-			obj.dom.addEventListener('mousemove', _fTouchMove);
+			obj.dom.addEventListener('mousemove', _fTouchMove, false);
 		} else {
-			obj.dom.addEventListener('touchmove', _fTouchMove);
+			obj.dom.addEventListener('touchmove', _fTouchMove, false);
 		}
 		
 		function _fTouchEnd (event) {
@@ -1171,9 +1193,9 @@ Ti._5.sendAnalytics = function(isUrgent){
 			_endPoint = null;
 		}
 		if (bEmulate) {
-			obj.dom.addEventListener('mouseup', _fTouchEnd);
+			obj.dom.addEventListener('mouseup', _fTouchEnd, false);
 		} else {
-			obj.dom.addEventListener('touchend', _fTouchEnd);
+			obj.dom.addEventListener('touchend', _fTouchEnd, false);
 		}
 	
 		obj.dom.addEventListener('touchcancel', function(event) {
@@ -1188,7 +1210,7 @@ Ti._5.sendAnalytics = function(isUrgent){
 				y			: event.pageY
 			};
 			obj.fireEvent('touchcancel', oEvent);
-		});
+		}, false);
 		
 		var _isDoubleTap = false;
 		obj.dom.addEventListener('click', function(event) {
@@ -1205,17 +1227,20 @@ Ti._5.sendAnalytics = function(isUrgent){
 			obj.fireEvent('singletap', oEvent);
 			if (_isDoubleTap) {
 				_isDoubleTap = false;
-				oEvent.type = 'doubletap';
-				obj.fireEvent('doubletap', oEvent);
-				oEvent.type = 'dblclick';
-				obj.fireEvent('dblclick', oEvent);
+				obj.fireEvent('doubletap', {
+					globalPoint	: { x:event.pageX, y:event.pageY }, 
+					source		: obj,
+					type		: 'doubletap',
+					x			: event.pageX,
+					y			: event.pageY
+				});
 			} else {
 				_isDoubleTap = true;
 				setTimeout(function() { 
 					_isDoubleTap = false;
 				}, 400);
 			}
-		});
+		}, false);
 	}
 })(Ti._5);	
 
@@ -1241,7 +1266,8 @@ Ti._5.sendAnalytics = function(isUrgent){
 					obj.dom.style['bottom'] = '';
 				}
 				_position('top', val);
-			}
+			},
+			configurable: true
 		});
 		
 		Object.defineProperty(obj, 'bottom', {
@@ -1253,7 +1279,8 @@ Ti._5.sendAnalytics = function(isUrgent){
 					obj.dom.style['top'] = '';
 				}
 				_position('bottom', val);
-			}
+			},
+			configurable: true
 		});
 		
 		Object.defineProperty(obj, 'left', {
@@ -1265,7 +1292,8 @@ Ti._5.sendAnalytics = function(isUrgent){
 					obj.dom.style['right'] = '';
 				}
 				_position('left', val);
-			}
+			},
+			configurable: true
 		});		
 		
 		Object.defineProperty(obj, 'right', {
@@ -1277,7 +1305,8 @@ Ti._5.sendAnalytics = function(isUrgent){
 					obj.dom.style['left'] = '';
 				}
 				_position('right', val);
-			}
+			},
+			configurable: true
 		});	
 		
 		Object.defineProperty(obj, 'width', {
@@ -1311,12 +1340,6 @@ Ti._5.sendAnalytics = function(isUrgent){
 		oParentNamespace.preset(obj, ["top", "bottom", "left", "right", "width", "height"], args);
 	}
 	
-})(Ti._5);	
-;
-(function(oParentNamespace) {
-	// Create object
-	oParentNamespace.Fontable = function(obj) {
-	};
 })(Ti._5);	
 ;
 (function(oParentNamespace) {
@@ -1384,6 +1407,11 @@ Ti._5.sendAnalytics = function(isUrgent){
 			},
 			set: function(val) {
 				obj['layoutStyle'] = val;
+				// If layout option setted out of the constructor, we need to redraw object 
+				if ('function' == typeof obj.render) { 
+					obj.innerHTML = '';
+					obj.render(null);
+				}
 			},
 			configurable: true
 		});
@@ -1404,15 +1432,17 @@ Ti._5.sendAnalytics = function(isUrgent){
 					obj.dom.style['position'] = 'relative';
 					obj.dom.style['margin-left'] = (obj.args)?obj.args['left']:'';
 					obj.dom.style['left']='';
+					obj.dom.style['margin-top'] = '';
 				}
 				// handle vertical layout
-				else if (parent['layoutStyle']=='vertical') {
+				else if (parent['layoutStyle'] == 'vertical') {
 					parent.dom.style['clear'] = 'both';
 					obj.dom.style['position'] = 'relative';
 					obj.dom.style['margin-top'] = (obj.args)?obj.args['top']:'';
 					obj.dom.style['display'] = 'block';
+					obj.dom.style['float']='';
 					obj.dom.style['top']='';
-					
+					obj.dom.style['margin-left'] = '';
 				}
 				parent._getAddContainer().appendChild(obj.dom);
 			} 
@@ -1436,9 +1466,38 @@ Ti._5.sendAnalytics = function(isUrgent){
 	Ti._5.EventDriven(api);
 	delete(this.removeEventListener);
 	api.version = "1.7.0.RC2";
-	api.buildDate = "06/06/11 15:58";
-	api.buildHash = "23b6295";
+	api.buildDate = "06/21/11 14:05";
+	api.buildHash = "9d6b693";
 	api.userAgent = "Appcelerator Titanium/"+api.version+" ("+navigator.userAgent+")";
+	var _loadedScripts = {};
+	function _execScript(code) {
+		var head = document.getElementsByTagName('head')[0];
+		if(head == null){
+			head = document;
+		}
+		var script = document.createElement('script');
+		script.type = 'text/javascript';
+		script.innerHTML = code;
+		head.appendChild(script);
+	}
+	function _loadSynchScript(_location) {
+		if ('undefined' != typeof _loadedScripts[_location]) {
+            return _execScript(_loadedScripts[_location]);
+        }
+		var _xhr = new XMLHttpRequest(); 
+		_xhr.onreadystatechange = function() {
+			if (_xhr.readyState == 4) {
+				if (_xhr.status == 200) {
+					_loadedScripts[_location] = _xhr.responseText;
+					_execScript(_xhr.responseText);
+				} 
+			}
+		};
+		_xhr.open("POST",_location,true);
+		_xhr.setRequestHeader("Access-Control-Allow-Origin","*");
+		_xhr.setRequestHeader("Content-Type", "text/xml; charset=utf-8");
+		_xhr.send(null);
+	}
 
 	// Methods
 	api.createBlob = function(){
@@ -1452,10 +1511,7 @@ Ti._5.sendAnalytics = function(isUrgent){
 		}
 
 		for (var i = 0; i < arguments.length; i++){
- 			var script = document.createElement('script');
-			script.type = 'application/javascript';
-			script.src = Ti._5.getAbsolutePath(arguments[i]);
-			head.appendChild(script);
+			_loadSynchScript(Ti._5.getAbsolutePath(arguments[i]));
 		}
 	};
 })(Ti);
@@ -2239,12 +2295,6 @@ Ti._5.createClass('Titanium.UI.Window', function(args){
 		set: function(val){return _tabBarHidden = val;}
 	});
 
-	var _title = null;
-	Object.defineProperty(this, 'title', {
-		get: function(){return _title;},
-		set: function(val){return _title = val;}
-	});
-
 	this.titleControl = null;
 	this.titleImage = null;
 	this.titlePrompt = null;
@@ -2272,7 +2322,10 @@ Ti._5.createClass('Titanium.UI.Window', function(args){
 			if (_isHTMLPage()) {
 				window.location.href = Ti._5.getAbsolutePath(_url);
 			} else {
-				Ti.include(_url);
+				// We need this for proper using window.open in code
+				setTimeout(function(){
+					Ti.include(_url);
+				}, 0); 
 			}
 		}
 	});
@@ -2283,6 +2336,7 @@ Ti._5.createClass('Titanium.UI.Window', function(args){
 		_oldHide();
 	};
 	// Methods
+	var _historyPoint = 0;
 	this.open = function(){
 		// hide previous window
 		if (Ti.UI.currentWindow != null){
@@ -2300,6 +2354,8 @@ Ti._5.createClass('Titanium.UI.Window', function(args){
 			// leave record in History object
 			window.history.pushState({windowIndex: _windowIndex}, "", "");
 		}
+		_setTitle();
+		_historyPoint = window.history.length;
 		obj.fireEvent("open", {source: null, type: "open"});
 		obj.fireEvent("focus", {source: obj.dom, type: "focus"});
 	};
@@ -2313,10 +2369,45 @@ Ti._5.createClass('Titanium.UI.Window', function(args){
 			var head = document.getElementsByTagName('head')[0];
 			head.removeChild(head.children[head.children.length - 1]);
 		}
-		window.history.go(-1);
+		// Return to history state
+		window.history.go(_historyPoint-window.history.length-1);
 	};
+	
+	Object.defineProperty(this, 'size', {
+		get: function() {
+			return {
+				width	: obj.width,
+				height	: obj.height
+			}
+		},
+		set: function(val) {
+			if (val.width) {
+				obj.width = val.width;
+			}
+			if (val.height) {
+				obj.height = val.height;
+			}
+		}
+	});
 
-	Ti._5.preset(this, ["width", "height", "url"], args);
+	var _setTitle = function(){
+		if(Ti.UI.currentWindow === obj){
+			document.title = obj.title != null ? obj.title : Ti._5.getArguments().projectName;
+		}
+	};
+	
+	var _title;
+	Object.defineProperty(this, 'title', {
+		get: function() {
+			return _title;
+		},
+		set: function(val) {
+			_title = val;
+			_setTitle();
+		}
+	});
+
+	Ti._5.preset(this, ["width", "height", "url", "size"], args);
 	Ti._5.presetUserDefinedElements(this, args);
 	
 	obj.render = function(parent) {
@@ -2367,6 +2458,10 @@ Titanium.UI.Window._windows = [];
 window.onpopstate = function(event){
 	if(event && event.state && event.state.windowIndex){
 		var win = Titanium.UI.Window._windows[event.state.windowIndex];
+		// for opening HTML windows
+		if (!win) {
+			return;
+		}
 		win._isBack = true;
 		win.open();
 	}
@@ -2421,6 +2516,7 @@ Ti._5.createClass('Titanium.UI.TableViewRow', function(args){
 	this.dom.style.verticalAlign = 'middle';
 	this.dom.style.position = 'relative';
 	this.dom.style.paddingLeft = '10px';
+	this.dom.style.overflow = 'hidden';
 	
 	this.add = function(view) {
 		view.dom.style.top = '0';
@@ -2443,11 +2539,12 @@ Ti._5.createClass('Titanium.UI.TableViewRow', function(args){
 		set: function(val){return _className = val;}
 	});
 
-	var _colorRow = '#0000';
+	var _colorRow = '#000000';
 	Object.defineProperty(this, 'color', {
 		get: function(){return _colorRow;},
 		set: function(val){
-			obj.color = val;
+			_colorRow = val;
+			obj.dom.style.color = val;
 		}
 	});
 
@@ -2526,7 +2623,7 @@ Ti._5.createClass('Titanium.UI.TableViewRow', function(args){
 		set: function(val){return _rightImage = val;}
 	});
 
-	var _selectedBackgroundColor = '#FBEE00'; //obj.backgroundColor;
+	var _selectedBackgroundColor = '#cccccc'; //obj.backgroundColor;
 	Object.defineProperty(this, 'selectedBackgroundColor', {
 		get: function(){return _selectedBackgroundColor;},
 		set: function(val){return _selectedBackgroundColor = val;}
@@ -2545,10 +2642,16 @@ Ti._5.createClass('Titanium.UI.TableViewRow', function(args){
 	});
 
 	var _selectionStyle = null;
-	// NOT IMPLEMENTED
 	Object.defineProperty(this, 'selectionStyle', {
 		get: function(){return _selectionStyle;},
-		set: function(val){return _selectionStyle = val;}
+		set: function(val){
+			_selectionStyle = val;
+			for (var sProp in val) {
+				if ("undeined" != typeof obj[sProp]) {
+					obj[sProp] = val[sProp];
+				}
+			}				
+		}
 	});
 
 	var _title = '';
@@ -2558,6 +2661,46 @@ Ti._5.createClass('Titanium.UI.TableViewRow', function(args){
 			_title = val;
 			obj.dom.innerHTML = val;
 			obj.render(null);
+		}
+	});
+	
+	Object.defineProperty(obj, 'top', {
+		get: function() {
+			return obj.dom.style.paddingTop ? parseInt(obj.dom.style.paddingTop) : '';
+		},
+		set: function(val) {
+			obj.dom.style.paddingBottom = '';
+			obj.dom.style.paddingTop = Ti._5.parseLength(val);
+		}
+	});
+	
+	Object.defineProperty(obj, 'bottom', {
+		get: function() {
+			return obj.dom.style.paddingBottom ? parseInt(obj.dom.style.paddingBottom) : '';
+		},
+		set: function(val) {
+			obj.dom.style.paddingTop = '';
+			obj.dom.style.paddingBottom = Ti._5.parseLength(val);
+		}
+	});
+	
+	Object.defineProperty(obj, 'left', {
+		get: function() {
+			return obj.dom.style.paddingLeft ? parseInt(obj.dom.style.paddingLeft) : '';
+		},
+		set: function(val) {
+			obj.dom.style.paddingRight = '';
+			obj.dom.style.paddingLeft = Ti._5.parseLength(val);
+		}
+	});
+	
+	Object.defineProperty(obj, 'right', {
+		get: function() {
+			return obj.dom.style.paddingRight ? parseInt(obj.dom.style.paddingRight) : '';
+		},
+		set: function(val) {
+			obj.dom.style.paddingLeft = '';
+			obj.dom.style.paddingRight = Ti._5.parseLength(val);
 		}
 	});
 	
@@ -2587,14 +2730,13 @@ Ti._5.createClass('Titanium.UI.TableViewRow', function(args){
 			_height = val;
 			obj.dom.style.height =  val + (/^\d+$/.test(val) ? 'px' : "");
 			obj.dom.style.lineHeight =  obj.dom.style.height;
-		},
-		configurable: true
+		}
 	});
 
 	Ti._5.preset(this, [
-		"className", "color", "title", "hasCheck", "hasChild", "hasDetail", "size", 
-		"selectedBackgroundColor", "selectedBackgroundImage", "selectedColor",
-		"backgroundDisabledImage", "backgroundDisabledColor", "enabled", "height"
+		"className", "color", "title", "hasCheck", "hasChild", "hasDetail", "top", "bottom", "left",
+		"right", "size", "selectedBackgroundColor", "selectedBackgroundImage", "selectedColor", 
+		"selectionStyle", "backgroundDisabledImage", "backgroundDisabledColor", "enabled", "height"
 	], args);
 	Ti._5.presetUserDefinedElements(this, args);
 	
@@ -2627,13 +2769,19 @@ Ti._5.createClass('Titanium.UI.TableViewRow', function(args){
 	
 	this.dom.addEventListener('touchstart', function(event) {
 		setColoredStyle();
-		//event.preventDefault();
-	});
+	}, false);
 
 	this.dom.addEventListener('touchend', function(event) {
 		setStatusQuo();
-		//event.preventDefault();
-	});		
+	}, false);		
+	
+	this.dom.addEventListener('mousedown', function(event) {
+		setColoredStyle();
+	}, false);
+	
+	this.dom.addEventListener('mouseup', function(event) {
+		setStatusQuo();
+	}, false);
 	
 	this.dom.addEventListener('click', function(event) {
 		var oEl = event.target, index = null, row = null;
@@ -2660,20 +2808,10 @@ Ti._5.createClass('Titanium.UI.TableViewRow', function(args){
 			x			: event.pageX,
 			y			: event.pageY
 		};
-		if ('undefined' == typeof obj.dom.ontouchstart) {
-			setColoredStyle();
-			setTimeout(setStatusQuo, 100);
-			setTimeout(function() {
-				obj.fireEvent('click', oEvent);
-				obj._parents[0].fireEvent('click', oEvent);
-			}, 150);
-		} else {
-			obj.fireEvent('click', oEvent);
-			obj._parents[0].fireEvent('click', oEvent);
-		}
-		event.preventDefault();
-	});
-
+		obj.fireEvent('click', oEvent);
+		obj._parents[0].fireEvent('click', oEvent);
+	}, false);
+	
 	this.dom.addEventListener('dblclick', function(event) {
 		var oEvent = {
 			globalPoint	: { x:event.pageX, y:event.pageY }, 
@@ -2684,7 +2822,7 @@ Ti._5.createClass('Titanium.UI.TableViewRow', function(args){
 		};
 		obj.fireEvent('dblclick', oEvent);
 		obj._parents[0].fireEvent('dblclick', oEvent);
-	});
+	}, false);
 });
 ;
 Ti._5.createClass('Titanium.UI.TableView', function(args){
@@ -2701,7 +2839,7 @@ Ti._5.createClass('Titanium.UI.TableView', function(args){
 	
 	function _addRowAdditionalData(row) {
 		row.dom.style.borderBottom = '1px solid ' + obj.separatorColor;
-		row.dom.style.height = obj.rowHeight + 'px';
+		row.dom.style.height = row.height || (obj.rowHeight + 'px');
 		row._parents = [obj];
 		
 		return row;
@@ -2925,7 +3063,7 @@ Ti._5.createClass('Titanium.UI.TableView', function(args){
 			y			: event.pageY
 		};
 		obj.fireEvent('click', oEvent);
-	});
+	}, false);
 	
 	this.dom.addEventListener('dblclick', function(event) {
 		// If tableview has children they will fire this event 
@@ -2940,7 +3078,7 @@ Ti._5.createClass('Titanium.UI.TableView', function(args){
 			y			: event.pageY
 		};
 		obj.fireEvent('dblclick', oEvent);
-	});
+	}, false);
 
 	// Methods
 	this.appendRow = function(row, properties){
@@ -2988,6 +3126,9 @@ Ti._5.createClass('Titanium.UI.TableView', function(args){
 		obj.dom.scrollTop = parseFloat(yCoord);
 	};
 	this.selectRow = function(row){
+		for (var iCounter=0; iCounter < obj._children.length; iCounter++) {
+			this.deselectRow(iCounter); 
+		}
 		obj._children[parseInt(row)]._selectRow();
 	};
 	this.setData = function(data, properties) {
@@ -3043,7 +3184,7 @@ Ti._5.createClass('Titanium.UI.TableView', function(args){
 			});
 		}, 300);	
 		obj.fireEvent('scroll', oEvent);
-	});
+	}, false);
 });
 ;
 (function(api){
@@ -3079,7 +3220,6 @@ Ti._5.createClass('Titanium.UI.Button', function(args){
 	Ti._5.Touchable(this, args);
 	Ti._5.Styleable(this, args);
 	Ti._5.Positionable(this, args);
-	Ti._5.Fontable(this);
 
 	// Properties
 	var _title = '';
@@ -3188,12 +3328,12 @@ Ti._5.createClass('Titanium.UI.Button', function(args){
 				obj.dom.addEventListener('focus', function() {
 					_prevTextColor = obj.color;
 					obj.color = _selectedColor;
-				});
+				}, false);
 				obj.dom.addEventListener('blur', function() {
 					if (_prevTextColor) {
 						obj.color = _prevTextColor;
 					}
-				});
+				}, false);
 			}
 		}
 	});
@@ -3231,13 +3371,28 @@ Ti._5.createClass('Titanium.UI.Button', function(args){
 ;
 Ti._5.createClass('Titanium.UI.Label', function(args){
 	var obj = this;
+	
+	// Set some default values to label for prevent inheriting style  
+	args = args || {};
+	args.backgroundColor = args.backgroundColor || 'none'; 
+	args.font = args.font || {}; 
+	args.fontFamily = args.fontFamily || ''; 
+	args.fontSize = args.fontSize || ''; 
+	args.fontStyle = args.fontStyle || 'normal'; 
+	args.fontWeight = args.fontWeight || 'normal'; 
+	args.minimumFontSize = args.minimumFontSize || ''; 
+	args.opacity = args.opacity || 1; 
+	args.textAlign = args.textAlign || '-webkit-auto'; 
+
 	// Interfaces
 	Ti._5.DOMView(this, 'div', args, 'Label');
 	Ti._5.Clickable(this);
 	Ti._5.Touchable(this, args);
 	Ti._5.Styleable(this, args);
 	Ti._5.Positionable(this, args);
-	Ti._5.Fontable(this);
+	args.backgroundPaddingLeft = args.backgroundPaddingLeft || '0';
+	args.backgroundPaddingTop = args.backgroundPaddingTop || '0';
+	this.dom.style.overflow = 'hidden';
 
 	// Properties
 	this.autoLink = null;
@@ -3324,12 +3479,12 @@ Ti._5.createClass('Titanium.UI.Label', function(args){
 				obj.dom.addEventListener('focus', function() {
 					_prevTextColor = obj.color;
 					obj.color = _selectedColor;
-				});
+				}, false);
 				obj.dom.addEventListener('blur', function() {
 					if (_prevTextColor) {
 						obj.color = _prevTextColor;
 					}
-				});
+				}, false);
 			}
 		}
 	});
@@ -3370,13 +3525,13 @@ Ti._5.createClass('Titanium.UI.ImageView', function(args){
 	function _loadImages (aImages) {
 		_isError = false;
 		if (!_preventDefaultImage) {
-			obj.dom.src = _defaultImage;
+			obj.dom.src = Ti._5.getAbsolutePath(_defaultImage);
 		}
 		// create object
 		oImage = new Image();
 		var _loaded = function () {
 			if (iCounter < aImages.length) return true;
-			obj.dom.src = aImages[0];
+			obj.dom.src = Ti._5.getAbsolutePath(aImages[0]);
 			oImage.removeEventListener('load', _loaded);
 			obj.fireEvent('load', {
 				source	: obj,
@@ -3387,13 +3542,12 @@ Ti._5.createClass('Titanium.UI.ImageView', function(args){
 		oImage.addEventListener('error',  function () {
 			_isError = true;
 			oImage.removeEventListener('load', _loaded);
-		});
-		oImage.addEventListener('load', _loaded);
+		}, false);
+		oImage.addEventListener('load', _loaded, false);
 
 		// start preloading
-		for(var iCounter=0; iCounter < aImages.length; iCounter++) 
-		{
-			oImage.src = aImages[iCounter];
+		for(var iCounter=0; iCounter < aImages.length; iCounter++) {
+			oImage.src = Ti._5.getAbsolutePath(aImages[iCounter]);
 		}
 	}
 
@@ -3454,15 +3608,16 @@ Ti._5.createClass('Titanium.UI.ImageView', function(args){
 		}
 	});
 
-	var _defaultImage = null;
+	var _defaultImage = "";
 	Object.defineProperty(this, 'defaultImage', {
 		get: function(){return _defaultImage;},
 		set: function(val){return _defaultImage = val;}
 	});
-
+	
+	var _src = "";
 	Object.defineProperty(this, 'image', {
-		get: function(){return obj.dom.src;},
-		set: function(val){_loadImages([val]);}
+		get: function(){return _src;},
+		set: function(val){_src = val; _loadImages([val]);}
 	});
 
 	var _images = [];
@@ -3559,7 +3714,10 @@ Ti._5.createClass('Titanium.UI.ImageView', function(args){
 ;
 (function(api) {
 	
-	api._updateText = function(_autocapitalization, sValue) {
+	api._capitalizeValue = function (_autocapitalization, sValue) {
+		if (!sValue) {
+			return;
+		}
 		var resultValue = '';
 		switch (_autocapitalization) {
 			case Titanium.UI.TEXT_AUTOCAPITALIZATION_NONE:  
@@ -3576,12 +3734,18 @@ Ti._5.createClass('Titanium.UI.ImageView', function(args){
 				if (!sValue.match(/^[\s,\.!?]/i)) {
 					sTemp = ' '+sValue;
 				}
-				sTemp = sTemp.match(/[\s,\.!]\w+/gi);
-					if (sTemp) {
+				sTemp = sTemp.match(/[\s,\.!]+\w+/gi);
+				if (sTemp) {
 					for (var iCounter=0; iCounter < sTemp.length; iCounter++) {
+						// Found first letter
+						for (var jCounter=0; jCounter < sTemp[iCounter].length; jCounter++) {
+							if (/\w/gi.test(sTemp[iCounter].charAt(jCounter))) {
+								break;
+							}
+						}
 						sTemp[iCounter] = sTemp[iCounter].replace(
-							sTemp[iCounter].charAt(1),
-							sTemp[iCounter].charAt(1).toUpperCase()
+							sTemp[iCounter].charAt(jCounter),
+							sTemp[iCounter].charAt(jCounter).toUpperCase()
 						);
 					}
 					if (!sValue.match(/^[\s,\.!?]/i)) {
@@ -3589,7 +3753,7 @@ Ti._5.createClass('Titanium.UI.ImageView', function(args){
 					}
 					resultValue = sTemp.join('')+sEnd;
 				} else {
-					resultValue = sEnd;
+					resultValue = _prevVal+sEnd;
 				}
 				break;
 			case Titanium.UI.TEXT_AUTOCAPITALIZATION_SENTENCES:
@@ -3629,6 +3793,14 @@ Ti._5.createClass('Titanium.UI.ImageView', function(args){
 		}
 		
 		return resultValue;
+	}		
+	
+	api._updateText = function(obj) {
+		var _selectionStart = obj.dom.selectionStart;
+		var _selectionEnd = obj.dom.selectionEnd;
+		obj.value = api._capitalizeValue(obj.autocapitalization, obj.value);
+		obj.dom.selectionStart = _selectionStart;
+		obj.dom.selectionEnd = _selectionEnd;
 	};
 	
 })(Titanium.UI);
@@ -3652,16 +3824,18 @@ Ti._5.createClass('Titanium.UI.TextField', function(args){
 			_autocapitalization = val;
 			if (!_autocapitalizationLoaded) {
 				obj.dom.addEventListener('keyup', function(event) {
-					obj.value = Titanium.UI._updateText(_autocapitalization, obj.value);
-				});
+					Titanium.UI._updateText(obj);
+				}, false);
 			}
-			obj.value = Titanium.UI._updateText(_autocapitalization, obj.value);
+			obj.value = Titanium.UI._capitalizeValue(_autocapitalization, obj.value);
 		}
 	});
 	
 	Object.defineProperty(this, 'value', {
 		get: function() {return obj.dom.value;},
-		set: function(val) {obj.dom.value = val ? Titanium.UI._updateText(_autocapitalization, val) : '';}
+		set: function(val) {
+			obj.dom.value = val ? Titanium.UI._capitalizeValue(_autocapitalization, val) : '';
+		}
 	});
 	
 	Object.defineProperty(this, 'editable', {
@@ -3755,7 +3929,7 @@ Ti._5.createClass('Titanium.UI.TextField', function(args){
 					if (_clearOnEdit) {
 						obj.value = '';
 					}
-				});
+				}, false);
 			}
 		}
 	});
@@ -3859,14 +4033,36 @@ Ti._5.createClass('Titanium.UI.TextField', function(args){
 					} else {
 						return true;
 					}
-				});
+				}, false);
 			}
 		}
 	});
 
+	var _vertAlign = 'auto';
 	Object.defineProperty(this, 'verticalAlign', {
-		get: function(){return obj.dom.style.verticalAlign ? obj.dom.style.verticalAlign : '';},
-		set: function(val){return obj.dom.style.verticalAlign = val ? val : 'auto'}
+		get: function(){return _vertAlign;},
+		set: function(val){
+			if (parseInt(val) == val) {
+				obj.dom.style.lineHeight = val + 'px';
+			} else {
+				switch (val) {
+					case 'top': 
+						_vertAlign = 'top';
+						obj.dom.style.lineHeight = 'auto';
+						break;
+					case 'bottom':
+						_vertAlign = 'bottom';
+						obj.dom.style.lineHeight = (obj.height + ((obj.height  - obj.fontSize) * 0.5)) + 'px';
+						break;
+					case 'midle':
+						_vertAlign = 'midle';
+					case 'auto':
+					default : 
+						_vertAlign = 'auto';
+						obj.dom.style.lineHeight = 'auto';
+				}
+			}
+		}
 	});
 	
 	Object.defineProperty(this, 'size', {
@@ -3889,7 +4085,7 @@ Ti._5.createClass('Titanium.UI.TextField', function(args){
 	Ti._5.preset(this, [
 		"value", "autocapitalization", "editable", "clearOnEdit", "suppressReturn",
 		"hintText", "paddingLeft", "paddingRight", "borderStyle", "backgroundDisabledImage",
-		"backgroundDisabledColor", "size", "enabled"
+		"backgroundDisabledColor", "verticalAlign", "size", "enabled"
 	], args);
 	Ti._5.presetUserDefinedElements(this, args);
 
@@ -3933,7 +4129,7 @@ Ti._5.createClass('Titanium.UI.TextArea', function(args){
 			oEvent.value = obj.dom.value;
 		}
 		obj.fireEvent('change', oEvent);
-	});
+	}, false);
 	
 	var _autocapitalization = 0;
 	var _autocapitalizationLoaded = false;
@@ -3943,16 +4139,18 @@ Ti._5.createClass('Titanium.UI.TextArea', function(args){
 			_autocapitalization = val;
 			if (!_autocapitalizationLoaded) {
 				obj.dom.addEventListener('keyup', function(event) {
-					obj.value =  Titanium.UI._updateText(_autocapitalization, obj.value);
-				});
+					Titanium.UI._updateText(obj);
+				}, false);
 			}
-			obj.value = Titanium.UI._updateText(_autocapitalization, obj.value);
+			obj.value = Titanium.UI._capitalizeValue(_autocapitalization, obj.value);
 		}
 	});
 	
 	Object.defineProperty(this, 'value', {
 		get: function() {return obj.dom.value;},
-		set: function(val) {obj.dom.value = val ? Titanium.UI._updateText(_autocapitalization, val) : '';}
+		set: function(val) {
+			obj.dom.value = val ? Titanium.UI._capitalizeValue(_autocapitalization, val) : '';
+		}
 	});
 	
 	Object.defineProperty(this, 'editable', {
@@ -4037,7 +4235,7 @@ Ti._5.createClass('Titanium.UI.TextArea', function(args){
 					} else {
 						return true;
 					}
-				});
+				}, false);
 			}
 		}
 	});
@@ -4087,18 +4285,48 @@ Ti._5.createClass('Titanium.UI.TextArea', function(args){
 					length		: obj.value.substring(startPos,endPos).length
 				},
 				source		: obj,
-				type		: event.type
+				type		: 'selected'
 			};
 			obj.fireEvent('selected', oEvent);
+			return true;
 		}
+		return false;
 	}
+	
+	var _isIOS = false;
+	if (
+		-1 < Titanium.Platform.osname.indexOf('iphone') ||
+		-1 < Titanium.Platform.osname.indexOf('ipod') ||
+		-1 < Titanium.Platform.osname.indexOf('ipad') 
+	) {
+		_isIOS = true;
+	}
+	
+	var _timeoutId  = null;
+	function _iOSFix () {
+		if (_timeoutId) {
+			return;
+		}
+		_timeoutId = setTimeout(function() {
+			_timeoutId = null;
+			if (!_check_sel({shiftKey: false}, true)) {
+				_iOSFix();
+			} 
+		}, 500);
+	};
 	
 	obj.dom.addEventListener('keyup', function(event) {
 		_check_sel(event, false);
-	});
+		if (_isIOS) {
+			_iOSFix();
+		}
+	}, false);
 	obj.dom.addEventListener('mouseup', function(event) {
 		_check_sel(event, true);
-	});
+		if (_isIOS) {
+			_iOSFix();
+		}
+	}, false);
 });
 
 ;
@@ -4111,13 +4339,16 @@ Ti._5.createClass('Titanium.UI.ScrollView', function(args){
 	Ti._5.Touchable(this, args);
 	Ti._5.Styleable(this, args);
 	Ti._5.Positionable(this, args);
-
+	
+	this.dom.style.position = 'absolute';
 	this.dom.style.overflow = "auto";
 
 	// we need to do some DOM manipulations here - ScrollView needs to have 2 containers - outer for setting contentWidth && contentHeight,
 	// and inner one - to apply everything else
 	// inner container
 	var _innerContainer = document.createElement('div');
+	_innerContainer.style.overflow = "hidden";
+	_innerContainer.style.position = "absolute";
 	obj.dom.appendChild(_innerContainer);
 	this._getAddContainer = function(){
 		return _innerContainer;
@@ -4127,7 +4358,7 @@ Ti._5.createClass('Titanium.UI.ScrollView', function(args){
 	var _contentHeight;
 	Object.defineProperty(this, 'contentHeight', {
 		get: function(){return _contentHeight;},
-		set: function(val){_contentHeight = val; obj.height = Ti._5.parseLength(val);}
+		set: function(val){_contentHeight = val; this._getAddContainer().style.height = Ti._5.parseLength(val);}
 	});
 
 	var _contentOffset = null;
@@ -4147,7 +4378,7 @@ Ti._5.createClass('Titanium.UI.ScrollView', function(args){
 	var _contentWidth;
 	Object.defineProperty(this, 'contentWidth', {
 		get: function(){return _contentWidth;},
-		set: function(val){_contentWidth = val; obj.width = Ti._5.parseLength(val);}
+		set: function(val){_contentWidth = val; this._getAddContainer().style.width = Ti._5.parseLength(val);}
 	});
 
 	this.disableBounce = false;
@@ -4206,7 +4437,7 @@ Ti._5.createClass('Titanium.UI.ScrollView', function(args){
 			y			: event.pageY
 		};
 		obj.fireEvent('scroll', oEvent);
-	});
+	}, false);
 	Ti._5.preset(this, ['contentHeight', 'contentWidth', 'contentOffset', 'showHorizontalScrollIndicator', 'showVerticalScrollIndicator', 'size'], args)
 	Ti._5.presetUserDefinedElements(this, args);
 });
@@ -4245,10 +4476,13 @@ Ti._5.createClass('Titanium.Database.DB', function(args){
 	this.rowsAffected = null;
 
 	// Methods
-	this.close = function(){
-		// do nothing
+	this.close = function() {
+		db = null;
 	};
 	this.execute = function(sql){
+		if (!db) {
+			return;
+		}
 		var values = arguments[1] instanceof Array ? arguments[1] : [];
 		var callback = null;
 		for (var i = 1; i < arguments.length; i++){
@@ -4425,6 +4659,16 @@ Ti._5.createClass('Titanium.Database.ResultSet', function(args){
 
 	// Methods
 	api.getCurrentPosition = function(callbackFunc) {
+		if (_lastPosition && 'function' == typeof callbackFunc) {
+			callbackFunc(_lastPosition);
+			return;
+		}
+		if (_lastError) {
+			if ('function' == typeof callbackFunc) {
+				callbackFunc(_lastError);
+			}
+			return;
+		}
 		navigator.geolocation.getCurrentPosition(
 			function(oPos){
 				oPos.code = 0;
@@ -4452,19 +4696,21 @@ Ti._5.createClass('Titanium.Database.ResultSet', function(args){
 	};
 
 	var _watchId;
-	var _oldAddEventListener = api.addEventListener;
+	var _oldAddEventListener = api.addEventListener, _lastPosition = null, _lastError = null;
 	api.addEventListener = function(eventType, callback){
+		_oldAddEventListener(eventType, callback);
 		if(eventType == 'location'){
 			_watchId = navigator.geolocation.watchPosition(
 				function(oPos){
 					oPos.code = 0;
-					oPos.coords.timestamp = oPos.timestamp;
 					oPos.coords.timestamp = oPos.timestamp;
 					oPos.error = '';
 					oPos.provider = null;
 					oPos.source = api;
 					oPos.type = 'location';
 					oPos.success = true;
+					_lastPosition = oPos;
+					_lastError = null;
 
 					api.fireEvent('location', oPos);
 					/*
@@ -4480,6 +4726,8 @@ Ti._5.createClass('Titanium.Database.ResultSet', function(args){
 					oError.source = api;
 					oError.type = 'location';
 					oError.success = false;
+					_lastPosition = null;
+					_lastError = oError;
 
 					api.fireEvent('location', oError);
 					/*
@@ -4492,16 +4740,13 @@ Ti._5.createClass('Titanium.Database.ResultSet', function(args){
 					enableHighAccuracy : _accuracy < 3 || api.ACCURACY_BEST == _accuracy ? true : false
 				}
 			);
-		} else {
-			_oldAddEventListener(eventType, callback);
 		}
 	};
 	var _oldRemoveEventlistener = api.removeEventListener;
 	api.removeEventListener = function(eventName, cb){
+		_oldRemoveEventlistener(eventName, cb);
 		if(eventName == 'location'){
 			navigator.geolocation.clearWatch(_watchId);
-		} else {
-			_oldRemoveEventlistener(eventName, cb);
 		}
 	};
 
@@ -4512,38 +4757,140 @@ Ti._5.createClass('Titanium.Database.ResultSet', function(args){
 })(Ti._5.createClass('Ti.Geolocation'));
 
 ;
-Ti._5.createClass('Titanium.UI.View', function(args){
+(function(api){
+	// Interfaces
+	Ti._5.EventDriven(api);
+
+	function _checkOrientation(ev){
+		var orientation = window.orientation;
+		var o = Ti.UI.UNKNOWN;
+		switch(orientation) {
+			case 0:
+				o = Ti.UI.PORTRAIT;
+				break;
+			case 90:
+				o = Ti.UI.LANDSCAPE_LEFT;
+				break;
+			case -90:
+				o = Ti.UI.LANDSCAPE_RIGHT;
+				break;
+		}
+
+		api.fireEvent('orientationchange', {
+			orientation: o,
+			source: ev.source,
+			type: 'orientationchange'
+		})
+	}
+	window.addEventListener("orientationchange", _checkOrientation, false);
+	
+	var _tLastShake = new Date(), _lastAccel = {}; 
+	// need some delta for coordinates changed
+	var _delta = 20;
+	function _checkShake (ev) {
+		var accel = {
+			x: ev.acceleration.x || ev.accelerationIncludingGravity.x || ev.x,
+			y: ev.acceleration.y || ev.accelerationIncludingGravity.y || ev.y,
+			z: ev.acceleration.z || ev.accelerationIncludingGravity.z || ev.z
+		};
+		
+		if (_lastAccel.x || _lastAccel.y || _lastAccel.z) {
+			if (
+				((Math.abs(_lastAccel.x - accel.x) > _delta) && (Math.abs(_lastAccel.y - accel.y) > _delta)) || 
+				((Math.abs(_lastAccel.x - accel.x) > _delta) && (Math.abs(_lastAccel.z - accel.z) > _delta)) || 
+				((Math.abs(_lastAccel.y - accel.y) > _delta) && (Math.abs(_lastAccel.z - accel.z) > _delta))
+			) {
+				var currentTime = new Date();
+				var timeDifference = currentTime.getTime() - _tLastShake.getTime();
+				if (timeDifference > 300) {
+					_tLastShake = new Date();
+					
+					api.fireEvent('shake', {
+						source: ev.source,
+						timestamp: timeDifference,
+						type: 'shake'
+					})
+				}
+			}
+		}
+		_lastAccel = accel;
+	}
+	window.addEventListener("devicemotion", _checkShake, false);
+	window.addEventListener("MozOrientation", _checkShake, false);
+		
+})(Ti._5.createClass('Titanium.Gesture'));
+
+;
+Ti._5.createClass('Titanium.UI.PickerRow', function(args){
 	var obj = this;
 	// Interfaces
-	Ti._5.DOMView(this, 'div', args, 'View');
-	Ti._5.Clickable(this);
+	Ti._5.DOMView(this, 'option', args, 'PickerRow');
 	Ti._5.Touchable(this, args);
+	args.backgroundColor = args.backgroundColor || 'white';
+	args.fontSize = args.font && args.font.size ? args.font.size : args.fontSize || '13px';
+	args.fontWeight = args.font && args.font.weight ? args.font.weight : args.fontWeight || 'normal';
+	args.fontStyle = args.font && args.font.style ? args.font.syle : args.fontStyle || 'normal';
+	args.fontVariant = args.font && args.font.variant ? args.font.variant : args.fontVariant || 'normal';
+	args.fontFamily = args.font && args.font.family ? args.font.family : args.fontFamily || 'Arial';
 	Ti._5.Styleable(this, args);
 	Ti._5.Positionable(this, args);
-	this.dom.style.overflow = "hidden";
 
+	// Properties
+	Object.defineProperty(this, 'selected', {
+		get: function(){return obj.dom.selected;},
+		set: function(val){obj.dom.selected = val ? true: false;}
+	});
+
+	var _title = null;
+	Object.defineProperty(this, 'title', {
+		get: function(){return _title;},
+		set: function(val){_title = val; obj.dom.innerHTML = _title; obj.render(null);}
+	});
+	
 	Object.defineProperty(this, 'size', {
-		get: function(){
+		get: function() {
 			return {
-				width: obj.width,
-				height: obj.height
+				width	: obj.width,
+				height	: obj.height
 			}
 		},
-		set: function(val){
-			if(val != null && val.width != null){
+		set: function(val) {
+			if (val.width) {
 				obj.width = val.width;
 			}
-
-			if(val != null && val.height != null){
+			if (val.height) {
 				obj.height = val.height;
 			}
 		}
 	});
-
+	
+	var _prevDisplay = '';
+	obj.show = function() {
+		obj.dom.style.display = _prevDisplay ? _prevDisplay : '';
+		if (obj._parent) {
+			obj._parent.dom.innerHTML = '';
+			obj._parent.render(null);
+		}
+	};
+	obj.hide = function() {
+		if ('none' != obj.dom.style.display) {
+			_prevDisplay = obj.dom.style.display;
+			obj.dom.style.display = 'none';
+			if (obj._parent) {
+				if (obj.dom.selected && 1 < obj._parent._children.length) {
+				obj._parent._children.length > obj._parent.dom.selectedIndex ? 
+					obj._parent.setSelectedRow(0, obj._parent.dom.selectedIndex+1) :
+					obj._parent.setSelectedRow(0, obj._parent.dom.selectedIndex-1);
+				}
+				obj._parent.dom.innerHTML = '';
+				obj._parent.render(null);
+			}
+		}
+	};
+	
+	Ti._5.preset(obj, ["selected", "title", "size"], args);
 	Ti._5.presetUserDefinedElements(this, args);
 });
-
-
 ;
 Ti._5.createClass('Titanium.UI.Picker', function(args){
 	var obj = this;
@@ -4570,7 +4917,6 @@ Ti._5.createClass('Titanium.UI.Picker', function(args){
 	}
 	Ti._5.Styleable(this, args);
 	Ti._5.Positionable(this, args);
-	Ti._5.Fontable(this);
 	
 	// Properties
 	Object.defineProperty(this, 'type', {
@@ -4629,11 +4975,50 @@ Ti._5.createClass('Titanium.UI.Picker', function(args){
 	var _visibleItems = null;
 	Object.defineProperty(this, 'visibleItems', {
 		get: function(){return obj.dom.size;},
-		set: function(val){obj.dom.size = parseInt(val);}
+		set: function(val){ 
+			// We need this for setting 'size' property in constructor
+			setTimeout(
+				function() {
+					obj.dom.size = parseInt(val);
+			}, 10);
+		}
 	});
 	
-	Ti._5.preset(obj, ["columns", "countDownDuration"], args);
+	Ti._5.preset(obj, ["columns", "countDownDuration", "visibleItems"], args);
 	Ti._5.presetUserDefinedElements(this, args);
+	
+	// API Methods
+	obj.render = function(parent) {
+		obj._parent = parent;
+		if (parent) {
+			// handle horizontal layout
+			if (parent['layoutStyle']=='horizontal') {
+				obj.dom.style['float'] = 'left';
+				obj.dom.style['position'] = 'relative';
+				obj.dom.style['margin-left'] = (obj.args)?obj.args['left']:'';
+				obj.dom.style['left']='';
+			}
+			// handle vertical layout
+			else if (parent['layoutStyle']=='vertical') {
+				parent.dom.style['clear'] = 'both';
+				obj.dom.style['position'] = 'relative';
+				obj.dom.style['margin-top'] = (obj.args)?obj.args['top']:'';
+				obj.dom.style['display'] = 'block';
+				obj.dom.style['top']='';
+				
+			}
+			parent._getAddContainer().appendChild(obj.dom);
+		} 
+		if (obj._children) {
+			for (var c=0;c<obj._children.length;c++) {
+				if (obj._children[c].visible) {
+					obj._children[c].render(obj);
+				}
+				//obj._children[c].render(obj._innerContainer ? obj._innerContainer : obj);
+			}
+		}
+		obj._rendered = true;
+	};
 
 	// Methods
 	var _rows = null;
@@ -4688,7 +5073,7 @@ Ti._5.createClass('Titanium.UI.Picker', function(args){
 	obj.dom.addEventListener('change', function(event) {
 		var selectedRow = _rows[obj.dom.selectedIndex];
 		// Copy some style rules
-		/*
+		//*
 		if (_rows[obj.dom.selectedIndex].dom.style.backgroundColor) {
 			obj.backgroundColor = _rows[obj.dom.selectedIndex].backgroundColor;
 		}
@@ -4706,7 +5091,7 @@ Ti._5.createClass('Titanium.UI.Picker', function(args){
 		if (selectedRow.dom.style.backgroundGradient) {
 			obj.backgroundGradient = selectedRow.backgroundGradient;
 		}
-		*/
+		//*/
 
 		var oEvent = {
 			source			: obj,
@@ -4719,50 +5104,42 @@ Ti._5.createClass('Titanium.UI.Picker', function(args){
 			row				: 'undefined' != typeof obj.dom.selectedIndex ? _rows[obj.dom.selectedIndex] : null
 		};
 		obj.fireEvent('change', oEvent);
-	});
+	}, false);
 });
 
 ;
-Ti._5.createClass('Titanium.UI.PickerRow', function(args){
+Ti._5.createClass('Titanium.UI.View', function(args){
 	var obj = this;
 	// Interfaces
-	Ti._5.DOMView(this, 'option', args, 'PickerRow');
+	Ti._5.DOMView(this, 'div', args, 'View');
+	Ti._5.Clickable(this);
 	Ti._5.Touchable(this, args);
 	Ti._5.Styleable(this, args);
 	Ti._5.Positionable(this, args);
+	this.dom.style.overflow = "hidden";
 
-	// Properties
-	Object.defineProperty(this, 'selected', {
-		get: function(){return obj.dom.selected;},
-		set: function(val){obj.dom.selected = val ? true: false;}
-	});
-
-	var _title = null;
-	Object.defineProperty(this, 'title', {
-		get: function(){return _title;},
-		set: function(val){_title = val; obj.dom.innerHTML = _title; obj.render(null);}
-	});
-	
 	Object.defineProperty(this, 'size', {
-		get: function() {
+		get: function(){
 			return {
-				width	: obj.width,
-				height	: obj.height
+				width: obj.width,
+				height: obj.height
 			}
 		},
-		set: function(val) {
-			if (val.width) {
+		set: function(val){
+			if(val != null && val.width != null){
 				obj.width = val.width;
 			}
-			if (val.height) {
+
+			if(val != null && val.height != null){
 				obj.height = val.height;
 			}
 		}
 	});
-	
-	Ti._5.preset(obj, ["selected", "title", "size"], args);
+
 	Ti._5.presetUserDefinedElements(this, args);
 });
+
+
 ;
 Ti._5.createClass('Titanium.UI.SearchBar', function(args){
 	var obj = this;
@@ -4784,10 +5161,10 @@ Ti._5.createClass('Titanium.UI.SearchBar', function(args){
 			_autocapitalization = val;
 			if (!_autocapitalizationLoaded) {
 				obj.dom.addEventListener('keyup', function(event) {
-					obj.value = Titanium.UI._updateText(_autocapitalization, obj.value);
-				});
+					Titanium.UI._updateText(obj);
+				}, false);
 			}
-			obj.value = Titanium.UI._updateText(_autocapitalization, obj.value);
+			obj.value = Titanium.UI._capitalizeValue(_autocapitalization, obj.value);
 		}
 	});
 
@@ -4806,7 +5183,7 @@ Ti._5.createClass('Titanium.UI.SearchBar', function(args){
 	Object.defineProperty(this, 'hintText', {
 		get: function() {return obj.dom.placeholder;},
 		set: function(val) {
-			obj.dom.placeholder = Titanium.UI._updateText(_autocapitalization, val);
+			obj.dom.placeholder = Titanium.UI._capitalizeValue(_autocapitalization, val);
 		}
 	});
 
@@ -4842,7 +5219,7 @@ Ti._5.createClass('Titanium.UI.SearchBar', function(args){
 
 	Object.defineProperty(this, 'value', {
 		get: function() {return obj.dom.value;},
-		set: function(val) {obj.dom.value = val ? Titanium.UI._updateText(_autocapitalization, val) : '';}
+		set: function(val) {obj.dom.value = val ? Titanium.UI._capitalizeValue(_autocapitalization, val) : '';}
 	});
 	
 	Object.defineProperty(this, 'size', {
@@ -4962,7 +5339,6 @@ Ti._5.createClass('Titanium.UI.Switch', function(args){
 	Ti._5.Touchable(this, args, true);
 	Ti._5.Styleable(this, args);
 	Ti._5.Positionable(this, args);
-	Ti._5.Clickable(this);
 	var _checkBox = document.createElement('input');
 	_checkBox.type =  'checkbox';
 	obj.dom.appendChild(_checkBox);
@@ -5105,14 +5481,18 @@ Ti._5.createClass('Titanium.UI.Switch', function(args){
 	// Events
 	obj.dom.addEventListener('click', function(event) {
 		if (_touchEnabled && _checkBox !== event.target) {
-			_checkBox.click(event);
+			_checkBox.checked = !_checkBox.checked;
+			_checking();
 		}
-	});
+	}, false);
 	obj.dom.addEventListener('touchstart', function(event) {
-		if (_touchEnabled && _checkBox !== event.target) {
-			_checkBox.touchstart(event);
+		if (_touchEnabled && _checkBox !== event.target && _checkBox.touchstart) {
+			_checkBox.checked = !_checkBox.checked;
+			_checking();
 		}
-	});
+	}, false);
+	// We need this here for firing 'click'/'touchstart' & 'change' events in native order 
+	Ti._5.Clickable(this);
 	
 	function _checking(event) {
 		if (_checkBox.checked && _titleOn && obj.style == Ti.UI.Android.SWITCH_STYLE_TOGGLEBUTTON) {
@@ -5129,7 +5509,7 @@ Ti._5.createClass('Titanium.UI.Switch', function(args){
 		obj.fireEvent('change', oEvent);
 	}
 	
-	_checkBox.addEventListener('change', _checking);
+	_checkBox.addEventListener('change', _checking, false);
 });
 
 ;
@@ -5242,6 +5622,50 @@ Ti._5.createClass('Titanium.UI.Android', function(args){
 
 	Ti._5.presetUserDefinedElements(this, args);
 });
+;
+(function(api){
+	// Properties
+	var _density = null;
+	Object.defineProperty(api, 'density', {
+		get: function(){
+			switch (navigator.userAgent.toLowerCase()) {
+				case 'iphone':
+					return 'medium';
+				case 'ipad':
+					return 'medium';
+				default:
+					return '';
+			}
+		},
+		set: function(val){return false;}
+	});
+
+	var _dpi = null;
+	Object.defineProperty(api, 'dpi', {
+		get: function(){
+			switch (navigator.userAgent.toLowerCase()) {
+				case 'iphone':
+					return 160;
+				case 'ipad':
+					return 130;
+				default:
+					return 0;
+			}
+		},
+		set: function(val){return false;}
+	});
+
+	Object.defineProperty(api, 'platformHeight', {
+		get: function(){return window.innerHeight;},
+		set: function(val){return false;}
+	});
+
+	Object.defineProperty(api, 'platformWidth', {
+		get: function(){return window.innerWidth;},
+		set: function(val){return false;}
+	});
+
+})(Ti._5.createClass('Titanium.Platform.DisplayCaps'));
 ;
 (function(api){
 	// Interfaces
@@ -5557,12 +5981,36 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 	Ti._5.Styleable(this, args);
 	Ti._5.Positionable(this, args);
 	Ti._5.Clickable(this);
-	
+	// For width & height on iPhone
+	this.dom.scrolling = "no";
+		
 	var _executeWhenLoaded = null;
 	obj.dom.addEventListener('load', function (event) {
-		obj.fireEvent('load', {
+		if (!obj.dom.contentWindow) {
+			obj.fireEvent('error', {
+				sourse	: obj,
+				message	: 'The page couldn`t be found',
+				type	: 'error',
+				url		: obj.url
+			});
+		} else {
+			obj.fireEvent('load', {
+				sourse	: obj,
+				type	: 'load',
+				url		: obj.url
+			});
+		}
+		if ('function' == typeof _executeWhenLoaded) {
+			_executeWhenLoaded(event);
+			_executeWhenLoaded = null;
+		}
+	}, false);
+	
+	obj.dom.addEventlistener('error', function (event) {
+		obj.fireEvent('error', {
 			sourse	: obj,
-			type	: 'beforeload',
+			message	: 'The page couldn`t be found',
+			type	: 'error',
 			url		: obj.url
 		});
 		if ('function' == typeof _executeWhenLoaded) {
@@ -5570,7 +6018,7 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 			_executeWhenLoaded = null;
 		}
 	}, false);
-
+	
 	// Properties
 	// NOT IMPLEMENTED
 	var _data = null;
@@ -5582,7 +6030,7 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 	Object.defineProperty(this, 'html', {
 		get: function() {
 			try {
-				return obj.dom.contentWindow.document.innerHTML;
+				return obj.dom.contentWindow.document.body.innerHTML;
 			} catch (error) {
 				obj.fireEvent('error', {
 					message	: error.description ? error.description : error,
@@ -5597,8 +6045,11 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 			obj.dom.src = 'about:blank';
 			_loading = true;
 			_executeWhenLoaded = function () {
-				obj.dom.contentWindow.document.body.innerHTML = val;
-				_loading = false;
+				// We need some delay, when setting window html from constructor
+				setTimeout(function() {
+					obj.dom.contentWindow.document.body.innerHTML = val;
+					_loading = false;
+				}, 0);
 			};
 		}
 	});
@@ -5614,9 +6065,10 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 		get: function(){return _scalesPageToFit;},
 		set: function(val){return _scalesPageToFit = val;}
 	});
-
+	
+	var _url = "";
 	Object.defineProperty(this, 'url', {
-		get: function(){return obj.dom.src;},
+		get: function(){return _url;},
 		set: function(val){
 			if (val.substring(0,1) == '/'){
 				val = val.substring(1);
@@ -5627,7 +6079,8 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 				url		: val
 			});
 			_loading = true;
-			obj.dom.src = val;
+			_url
+			obj.dom.src = Ti._5.getAbsolutePath(val);
 			_executeWhenLoaded = function () {
 				_loading = false;
 			};
@@ -5651,15 +6104,15 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 		}
 	});
 	
-	Ti._5.preset(this, ["html", "url", "loading", "size"], args);
+	Ti._5.preset(this, ["url", "loading", "size", "html"], args);
 	Ti._5.presetUserDefinedElements(this, args);
 
 	// Methods
 	this.canGoBack = function() {
-		return obj.dom.contentWindow && obj.dom.contentWindow.history;
+		return obj.dom.contentWindow && obj.dom.contentWindow.history && obj.url ? true : false;
 	};
 	this.canGoForward = function() {
-		return obj.dom.contentWindow && obj.dom.contentWindow.history;
+		return obj.dom.contentWindow && obj.dom.contentWindow.history && obj.url ? true : false;
 	};
 	this.evalJS = function(sJScript){
 		if (obj.dom.contentWindow.eval) {
@@ -5669,11 +6122,14 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 		}
 	};
 	this.goBack = function() {
-		console.log(obj.dom.contentWindow.history.length);
-		obj.dom.contentWindow.history.back();
+		if (this.canGoBack()) {
+			obj.dom.contentWindow.history.back();
+		}
 	};
 	this.goForward = function(){
-		obj.dom.contentWindow.history.forward();
+		if (this.canGoForward()) {
+			obj.dom.contentWindow.history.forward();
+		}
 	};
 	this.reload = function(){
 		if (obj.url) {
@@ -5689,10 +6145,8 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 		console.debug('Method "Titanium.UI.WebView#.setBasicAuthentication" is not implemented yet.');
 	};
 	this.stopLoading = function(){
-		// waiting while webkit implemented window.stop
-		if (this.canGoBack()) {
-			this.goBack(); 
-		}
+		// we have no permission to stop loading current iframe, so we can only stop loading all frames in window
+		window.stop();
 	};
 });
 ;
@@ -5715,7 +6169,7 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 	api.WRITE_MODE = 1;
 	
 	var _networkType = navigator.onLine ? api.NETWORK_UNKNOWN : api.NETWORK_NONE;
-	Object.defineProperty(this, 'networkType', {
+	Object.defineProperty(api, 'networkType', {
 		get: function() {return _networkType},
 		set: function(val) {
 			_networkType = val;
@@ -5723,7 +6177,7 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 	});
 	
 	var _networkTypeName = '';
-	Object.defineProperty(this, 'networkTypeName', {
+	Object.defineProperty(api, 'networkTypeName', {
 		get: function() {return _networkTypeName},
 		set: function(val) {
 			_networkTypeName = val;
@@ -5731,7 +6185,7 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 	});
 		
 	var _online = navigator.onLine;
-	Object.defineProperty(this, 'online', {
+	Object.defineProperty(api, 'online', {
 		get: function() {return _online},
 		set: function(val) {
 			_online = val;
@@ -5790,7 +6244,7 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 			api.fireEvent('change', oEvent);
 		}
 		api.online = true;
-	});
+	}, false);
 	
 	window.addEventListener('offline', function(event) {
 		var oEvent = {
@@ -5807,7 +6261,7 @@ Ti._5.createClass('Titanium.UI.WebView', function(args){
 			api.fireEvent('change', oEvent);
 		}
 		api.online = false;
-	});
+	}, false);
 })(Ti._5.createClass('Ti.Network'));
 
 ;
@@ -6003,10 +6457,10 @@ Ti._5.createClass('Titanium.Network.HTTPClient', function(args){
 		set: function(val) {return _status = val;}
 	});
 
-	var _timeout = null;
+	_xhr.timeout = 60000; // Default timeout = 1 minute
 	Object.defineProperty(this, 'timeout', {
-		get: function() {return _timeout;},
-		set: function(val) {return _timeout = val;}
+		get: function() {return _xhr.timeout;},
+		set: function(val) {return _xhr.timeout = val;}
 	});
 
 	var _validatesSecureCertificate = false; 
@@ -6062,14 +6516,49 @@ Ti._5.createClass('Titanium.Network.HTTPClient', function(args){
 });
 
 ;
+
+;
 (function(api){
 	// Interfaces
 	Ti._5.EventDriven(api);
-
-	// Events
-	api.addEventListener('update', function(){
-		console.debug('Event "update" is not implemented yet.');
-	});
+	
+	var _tLastShake = new Date(), _lastAccel = {}; 
+	// need some delta for coordinates changed
+	var _delta = 20;
+	function _checkShake (ev) {
+		var accel = {
+			x: ev.acceleration.x || ev.accelerationIncludingGravity.x || ev.x,
+			y: ev.acceleration.y || ev.accelerationIncludingGravity.y || ev.y,
+			z: ev.acceleration.z || ev.accelerationIncludingGravity.z || ev.z
+		};
+		
+		if (_lastAccel.x || _lastAccel.y || _lastAccel.z) {
+			if (
+				((Math.abs(_lastAccel.x - accel.x) > _delta) && (Math.abs(_lastAccel.y - accel.y) > _delta)) || 
+				((Math.abs(_lastAccel.x - accel.x) > _delta) && (Math.abs(_lastAccel.z - accel.z) > _delta)) || 
+				((Math.abs(_lastAccel.y - accel.y) > _delta) && (Math.abs(_lastAccel.z - accel.z) > _delta))
+			) {
+				var currentTime = new Date();
+				var timeDifference = currentTime.getTime() - _tLastShake.getTime();
+				if (timeDifference > 300) {
+					_tLastShake = new Date();
+					
+					api.fireEvent('update', {
+						source: ev.source,
+						timestamp: timeDifference,
+						type: 'update',
+						x: accel.x,
+						y: accel.y,
+						z: accel.z
+					})
+				}
+			}
+		}
+		_lastAccel = accel;
+	}
+	window.addEventListener("devicemotion", _checkShake, false);
+	window.addEventListener("MozOrientation", _checkShake, false);
+	
 })(Ti._5.createClass('Titanium.Accelerometer'));
 ;
 (function(api){
@@ -8768,34 +9257,6 @@ Ti._5.createClass('Titanium.Facebook.LoginButton', function(args){
 	// Interfaces
 	Ti._5.EventDriven(api);
 
-	window.onorientationchange = function(ev){
-		var orientation = window.orientation;
-		var o = Ti.UI.UNKNOWN;
-		switch(orientation) {
-			case 0:
-				o = Ti.UI.PORTRAIT;
-				break;
-			case 90:
-				o = Ti.UI.LANDSCAPE_LEFT;
-				break;
-			case -90:
-				o = Ti.UI.LANDSCAPE_RIGHT;
-				break;
-		}
-
-		Titanium.Gesture.fireEvent('orientationchange', {
-			orientation: o,
-			source: ev.source,
-			type: 'orientationchange'
-		})
-	};
-})(Ti._5.createClass('Titanium.Gesture'));
-
-;
-(function(api){
-	// Interfaces
-	Ti._5.EventDriven(api);
-
 	// Properties
 	var _animate = null;
 	Object.defineProperty(api, 'animate', {
@@ -10551,7 +11012,7 @@ Ti._5.createClass('Titanium.Network.TCPSocket', function(args){
 				type		: event.type
 			};
 			obj.fireEvent('read', oEvent);
-		});
+		}, false);
 	};
 	api.write = function(val){
 		if (_socket && _socket.send) {
@@ -10579,50 +11040,6 @@ Ti._5.createClass('Titanium.Network.TCPSocket', function(args){
 		obj.fireEvent('writeError', oEvent);
 	});
 });
-;
-(function(api){
-	// Properties
-	var _density = null;
-	Object.defineProperty(api, 'density', {
-		get: function(){
-			switch (navigator.userAgent.toLowerCase()) {
-				case 'iphone':
-					return 'medium';
-				case 'ipad':
-					return 'medium';
-				default:
-					return '';
-			}
-		},
-		set: function(val){return false;}
-	});
-
-	var _dpi = null;
-	Object.defineProperty(api, 'dpi', {
-		get: function(){
-			switch (navigator.userAgent.toLowerCase()) {
-				case 'iphone':
-					return 160;
-				case 'ipad':
-					return 130;
-				default:
-					return 0;
-			}
-		},
-		set: function(val){return false;}
-	});
-
-	Object.defineProperty(api, 'platformHeight', {
-		get: function(){return window.innerHeight;},
-		set: function(val){return false;}
-	});
-
-	Object.defineProperty(api, 'platformWidth', {
-		get: function(){return window.innerWidth;},
-		set: function(val){return false;}
-	});
-
-})(Ti._5.createClass('Titanium.Platform.DisplayCaps'));
 ;
 Ti._5.createClass('Titanium.UI.2DMatrix', function(args){
 	var obj = this;
@@ -10676,7 +11093,6 @@ Ti._5.createClass('Titanium.UI.ActivityIndicator', function(args){
 	var obj = this;
 	// Interfaces
 	Ti._5.DOMView(this, 'activityindicator', args, 'ActivityIndicator');
-	Ti._5.Fontable(this);
 
 	// Properties
 	var _color = null;
@@ -11345,10 +11761,10 @@ Ti._5.createClass('Titanium.UI.iPhone.AnimationStyle', function(args){
 	Ti._5.presetUserDefinedElements(this, args);
 });
 ;
-Ti._5.createClass('Titanium.UI.iPhone', function(args){
+(function(api){
 	var obj = this;
 	// Interfaces
-	Ti._5.DOMView(this, 'iphone', args, 'iPhone');
+	Ti._5.DOMView(this, 'iphone', null, 'iPhone');
 
 	// Properties
 	var _MODAL_PRESENTATION_CURRENT_CONTEXT = null;
@@ -11434,8 +11850,9 @@ Ti._5.createClass('Titanium.UI.iPhone', function(args){
 		console.debug('Method "Titanium.UI.iPhone#.showStatusBar" is not implemented yet.');
 	};
 
-	Ti._5.presetUserDefinedElements(this, args);
-});
+	Ti._5.presetUserDefinedElements(this, null);
+
+})(Ti._5.createClass('Titanium.UI.iPhone'));
 ;
 Ti._5.createClass('Titanium.UI.iPhone.NavigationGroup', function(args){
 	var obj = this;
@@ -11868,32 +12285,22 @@ Ti._5.createClass('Titanium.UI.iPhone.SystemIcon', function(args){
 	Ti._5.presetUserDefinedElements(this, args);
 });
 ;
-Ti._5.createClass('Titanium.UI.iPhone.TableViewCellSelectionStyle', function(args){
-	var obj = this;
-	// Interfaces
-	Ti._5.DOMView(this, 'iphone.tableviewcellselectionstyle', args, 'iPhone.TableViewCellSelectionStyle');
-
+(function(api){
 	// Properties
-	var _BLUE = null;
-	Object.defineProperty(this, 'BLUE', {
-		get: function(){return _BLUE;},
-		set: function(val){return _BLUE = val;}
+	Object.defineProperty(api, 'BLUE', {
+		value: {selectedBackgroundColor: 'blue'},
+		writable: false
+	});
+	Object.defineProperty(api, 'GRAY', {
+		value: {selectedBackgroundColor: 'gray'},
+		writable: false
+	});
+	Object.defineProperty(api, 'NONE', {
+		value: {selectedColor: '', selectedBackgroundImage: '', selectedBackgroundColor: ''},
+		writable: false
 	});
 
-	var _GRAY = null;
-	Object.defineProperty(this, 'GRAY', {
-		get: function(){return _GRAY;},
-		set: function(val){return _GRAY = val;}
-	});
-
-	var _NONE = null;
-	Object.defineProperty(this, 'NONE', {
-		get: function(){return _NONE;},
-		set: function(val){return _NONE = val;}
-	});
-
-	Ti._5.presetUserDefinedElements(this, args);
-});
+})(Ti._5.createClass('Titanium.UI.iPhone.TableViewCellSelectionStyle'));
 ;
 Ti._5.createClass('Titanium.UI.iPhone.TableViewScrollPosition', function(args){
 	var obj = this;
@@ -12365,7 +12772,7 @@ Ti._5.createClass('Titanium.UI.Slider', function(args){
 			value		: obj.value
 		};
 		obj.fireEvent('change', oEvent);
-	});
+	}, false);
 	
 });
 ;
@@ -12644,13 +13051,116 @@ Ti._5.createClass('Titanium.UI.Toolbar', function(args){
 (function(api){
 	// Interfaces
 	Ti._5.EventDriven(api);
+	
+	function _clone(oSource) {
+		if(!oSource || 'object' !== typeof oSource)  {
+			return oSource;
+		}
+		var oClone = 'function' === typeof oSource.pop ? [] : {};
+		var sIndex = null;
+		for(sIndex in oSource) {
+			if(oSource.hasOwnProperty(sIndex)) {
+				var oProp = oSource[sIndex];
+				if(oProp && 'object' === typeof oProp) {
+					oClone[sIndex] = _clone(oProp);
+				} else {
+					oClone[sIndex] = oProp;
+				}
+			}
+		}
+		return oClone;
+	}
+
+	var _DOMParser = new DOMParser();
+	api.DOMDocument = null;
+	
+	function _NodeList() {
+		var _nodes = [];
+
+		Object.defineProperty(this, 'length', {
+			get: function() {return _nodes.length},
+			set: function() {return false}
+		});
+	
+		this.item = function (iIndex) {
+			return _nodes[iIndex]; 
+		}
+		this.add = function (oNode) {
+			_nodes.push(oNode);
+		}
+		this.remove = function (oNode) {
+			for (var iCounter=_nodes.length; iCounter--;) {
+				if (oNode == _nodes[iCounter]) {
+					_nodes.splice(iCounter,1);
+				}
+			}
+		}
+	}
+	
+	function _nodeWrapper(oNode) {
+		oNode.text = oNode.nodeValue;
+		oNode.evaluate = function (xml) {
+			var oNodes = document.evaluate(xml, oNode, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+			var oResult = new _NodeList();
+			var oTemp = null;
+			if (oNodes) {
+				while (oTemp = oNodes.iterateNext()) {
+					oResult.add(oTemp);
+				}
+			}
+			return oResult;
+		};
+		return oNode;
+	}
+	
 	// Methods
-	api.parseString = function(){
-		console.debug('Method "Titanium.XML..parseString" is not implemented yet.');
+	api.parseString = function(xml) {
+		domDocument = _DOMParser.parseFromString(xml,"text/xml");
+
+		// Add some functionality
+		domDocument.evaluate = function (xml) {
+			var oNodes = document.evaluate(xml, domDocument, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE , null);
+			var oResult = new _NodeList();
+			var oTemp = null;
+			if (oNodes) {
+				while (oTemp = oNodes.iterateNext()) {
+					oResult.add(_nodeWrapper(oTemp));
+				}
+			}
+			return oResult;
+		};
+
+		return api.DOMDocument = domDocument;
 	};
-	api.serializeToString = function(){
-		console.debug('Method "Titanium.XML..serializeToString" is not implemented yet.');
+	
+	function _serialize1Node (node) {
+		if ('undefined' != typeof node.outerHTML) {
+			return node.outerHTML;
+		}
+		
+		if ('undefined' != typeof XMLSerializer) {
+			var serializer = new XMLSerializer();
+			return serializer.serializeToString(node);
+		} else if (node.xml) {
+			return node.xml;
+		} else {
+			var oNode = document.createElement("div");
+			oNode.appendChild(node);
+			return oNode.innerHTML;
+		}
 	};
+	
+	api.serializeToString = function (nodeList) {
+		if ('array' != typeof nodeList && '[object NodeList]' !== nodeList.toString()) {
+			return _serialize1Node(nodeList);
+		}
+		var sResult = "";
+		for (var iCounter=0; iCounter < nodeList.length; iCounter++) {
+			sResult += _serialize1Node(nodeList[iCounter]);
+		}
+		return sResult;
+	}
+	
 })(Ti._5.createClass('Titanium.XML'));
 ;
 (function(api){
