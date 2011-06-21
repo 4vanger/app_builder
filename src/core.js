@@ -115,12 +115,12 @@ $(function(){
 		}
 		var el = $(this);
 		var propName = el.attr('name');
-		var val = el.val();
 		var prop = properties[el.attr('data-propertyType')];
 		if(prop == null){
 			prop = properties['text'];
 		}
-		_activeObj.control[propName] = prop.getValue(this);
+		var val = prop.getValue(this);
+		_activeObj.control[propName] = val;
 		_activeObj.properties[propName] = val;
 	});
 

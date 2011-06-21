@@ -82,6 +82,11 @@
 			<input class="property" data-propertyType="${propertyType}" type="text" name="${name}" ${value == true ? 'checked="checked"' : ''} />
 			<div class="colorPickerIcon"></div>
 		</script>
+		<script id="sizePropertyTemplate" type="text/x-jquery-tmpl">
+			<input class="property" data-propertyType="${propertyType}" data-size="width" type="text" name="${name}"  value="${value.width}" />
+			<div class="floating">x</div>
+			<input class="property" data-propertyType="${propertyType}" data-size="height" type="text" name="${name}"  value="${value.height}" />
+		</script>
 		<script id="generatorTemplate" type="text/x-jquery-tmpl">
 			<div>
 				<button id="copyGenerator">Copy</button>

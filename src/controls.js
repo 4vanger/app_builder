@@ -19,15 +19,7 @@ var args2str = function(item){
 			line.push('\'');
 		}
 		line.push(': ');
-		var value = args[arg];
-		if(typeof value === 'string'){
-			line.push('\'');
-			line.push(value.replace(/\\/g, '\\\\').replace(/'/g, '\\\''));
-			line.push('\'');
-		} else if(typeof value === 'number'){
-			line.push(value);
-		}
-
+		line.push(JSON.stringify(args[arg]));
 		str.push(line.join(''));
 	}
 	return str.join(',\n');
@@ -63,6 +55,22 @@ var properties = {
 	bool: {
 		template: "boolProperty",
 		getValue: function(el){return el.checked;}
+	},
+	size: {
+		template: "sizeProperty",
+		getValue: function(el){
+			var res = {};
+			var els = $(el).siblings('input').andSelf();
+			res.height = parseInt(els.filter('[data-size="height"]').val());
+			res.width = parseInt(els.filter('[data-size="width"]').val());
+			if(isNaN(res.height)){
+				res.height = 0;
+			}
+			if(isNaN(res.width)){
+				res.width = 0;
+			}
+			return res;
+		}
 	}
 };
 
