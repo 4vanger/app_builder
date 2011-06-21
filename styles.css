@@ -100,3 +100,13 @@ ul.propertiesList {
 	margin: 0.5em 0 0.1em 0;
 	padding:  0.1em 1em;
 }
+
+.properties input {
+	float: left;
+}
+.properties .colorPickerIcon {
+	float: left;
+	width: 30px;
+	height: 30px;
+	background: url(3rd/colorpicker/images/select.png) center;
+}

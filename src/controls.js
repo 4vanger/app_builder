@@ -56,6 +56,10 @@ var properties = {
 		template: "textProperty",
 		getValue: function(el){return parseInt(el.value);}
 	},
+	color: {
+		template: "colorProperty",
+		getValue: function(el){return el.value;}
+	},
 	bool: {
 		template: "boolProperty",
 		getValue: function(el){return el.checked;}
@@ -135,7 +139,33 @@ var controls = {
 		},
 		interfaces: ['DOMView', 'Clickable', 'Interactable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
-		}
+			autocapitalization: 'bool',
+			value: 'text',
+			editable: 'bool',
+			enabled: 'bool',
+			borderStyle: 'borderStyle',
+			backgroundDisabledImage: 'url',
+			backgroundDisabledColor: 'color',
+			clearButtonMode: 'text',
+			clearOnEdit: 'bool',
+			hintText: 'text',
+			keyboardToolbar: 'keyboardToolbar',
+			keyboardToolbarColor: 'color',
+			keyboardToolbarHeight: 'int',
+			leftButton: 'leftButton',
+			leftButtonMode: 'leftButtonMode',
+			leftButtonPadding: 'int',
+			minimumFontSize: 'int',
+			paddingLeft: 'int',
+			paddingRight: 'int',
+			rightButton: 'rightButton',
+			rightButtonMode: 'rightButtonMode',
+			rightButtonPadding: 'int',
+			suppressReturn: 'bool',
+			verticalAlign: 'verticalAlign',
+			size: 'size'
+		},
+		events: ['blur', 'change', 'focus', 'return']
 	},
 	Label: {
 		varPrefix: "lb",
@@ -154,10 +184,22 @@ var controls = {
 		},
 		interfaces: ['DOMView', 'Clickable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
-			'text': 'text',
-			'html': 'text',
-			'textAlign': 'text',
-			'textid': 'text'
+			backgroundPaddingBottom: 'int',
+			backgroundPaddingLeft: 'int',
+			backgroundPaddingRight: 'int',
+			backgroundPaddingTop: 'int',
+			ellipsize: 'ellipsize',
+			highlightedColor: 'color',
+			html: 'text',
+			minimumFontSize: 'int',
+			shadowColor: 'color',
+			shadowOffset: 'int',
+			text: 'text',
+			textAlign: 'textAlign',
+			textid: 'text',
+			wordWrap: 'wordWrap',
+			selectedColor: 'color',
+			size: 'size'
 		}
 	},
 	TextArea: {
@@ -197,7 +239,20 @@ var controls = {
 		},
 		interfaces: ['DOMView', 'Clickable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
-		}
+			autoLink: 'autoLink',
+			autocapitalization: 'bool',
+			value: 'text',
+			editable: 'bool',
+			enabled: 'bool',
+			backgroundDisabledImage: 'url',
+			backgroundDisabledColor: 'color',
+			keyboardToolbar: 'keyboardToolbar',
+			keyboardToolbarColor: 'color',
+			keyboardToolbarHeight: 'int',
+			suppressReturn: 'bool',
+			size: 'size'
+		},
+		events: ['change']
 	},
 	Button: {
 		varPrefix: "bt",
@@ -216,7 +271,17 @@ var controls = {
 		},
 		interfaces: ['DOMView', 'Clickable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
-		}
+			title: 'text',
+			image: 'url',
+			enabled: 'bool',
+			backgroundDisabledImage: 'url',
+			backgroundDisabledColor: 'color',
+			size: 'size',
+			selectedColor: 'color',
+			style: 'text',
+			titleid: 'text'
+		},
+		events: []
 	},
 	SearchBar: {
 		varPrefix: "sb",
@@ -236,7 +301,18 @@ var controls = {
 		},
 		interfaces: ['DOMView', 'Clickable', 'Interactable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
-		}
+			autocorrect: 'bool',
+			barColor: 'color',
+			hintText: 'text',
+			hinttextid: 'text',
+			keyboardType: 'keyboardType',
+			prompt: 'text',
+			promptid: 'text',
+			showCancel: 'bool',
+			value: 'text',
+			size: 'size'
+		},
+		events: ['blur', 'cancel', 'change', 'focus', 'return']
 	}
 };
 

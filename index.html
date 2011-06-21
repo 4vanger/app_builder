@@ -7,8 +7,10 @@
 		<script type="text/javascript" src="3rd/jquery.tmpl.min.js"></script>
 		<script type="text/javascript" src="3rd/underscore-min.js"></script>
 	    <script type="text/javascript" src="3rd/zeroclipboard/ZeroClipboard.js"></script>
+	    <script type="text/javascript" src="3rd/colorpicker.js"></script>
 		<script type="text/javascript" src="src/utils.js"></script>
 		<link rel="stylesheet" href="3rd/overcast/jquery-ui-1.8.9.custom.css">
+		<link rel="stylesheet" href="3rd/colorpicker/css/colorpicker.css">
 		<link rel="stylesheet" href="styles.css">
 	</head>
 	<body>
@@ -59,7 +61,7 @@
 			{{/each}}
 		</script>
 		<script id="propertyTemplate" type="text/x-jquery-tmpl">
-			<li>
+			<li class="ui-helper-clearfix">
 				<div class="propertyName">${propertyName}</div>
 				{{tmpl({name: propertyName, value: propertyValue, propertyType: propertyType}) propertiesData[propertyType] == null ? "textProperty" : propertiesData[propertyType].template}}
 			</li>
@@ -75,6 +77,10 @@
 		</script>
 		<script id="boolPropertyTemplate" type="text/x-jquery-tmpl">
 			<input class="property" data-propertyType="${propertyType}" type="checkbox" name="${name}" ${value == true ? 'checked="checked"' : ''} />
+		</script>
+		<script id="colorPropertyTemplate" type="text/x-jquery-tmpl">
+			<input class="property" data-propertyType="${propertyType}" type="text" name="${name}" ${value == true ? 'checked="checked"' : ''} />
+			<div class="colorPickerIcon"></div>
 		</script>
 		<script id="generatorTemplate" type="text/x-jquery-tmpl">
 			<div>

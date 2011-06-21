@@ -50,7 +50,7 @@ $(function(){
 					helper: function(event){
 						// we need to remove cover element with little delay because DND needs to take its position.
 						setTimeout(function(){$(this).remove()}, 100);
-						dd.unbind("mouseenter");
+						dd.unbind('mouseenter');
 						return dd;
 					},
 					containment: '.canvas'
@@ -75,12 +75,37 @@ $(function(){
 			interfacesData: interfaces
 		}).appendTo('#propertiesContainer')
 		.find('button').button().end()
-		.find(".interfaceName").click(function(){$(this).next("ul").slideToggle()});
+		.find('.interfaceName').click(function(){$(this).next('ul').slideToggle()}).end()
+		.find('[data-propertyType="color"], .colorPickerIcon').each(function(ii, el){
+				$(el).ColorPicker({
+					flat: false,
+					onShow: function (colpkr) {
+						$(colpkr).fadeIn(500);
+						return false;
+					},
+					onHide: function (colpkr) {
+						$(colpkr).fadeOut(500);
+						return false;
+					},
+					onChange: function (hsb, hex, rgb) {
+						$(el).siblings('input, .colorPickerIcon').andSelf().each(function(ii, el){
+							if(el.className == 'colorPickerIcon'){
+								$(el).css('backgroundColor', '#' + hex);
+							} else {
+								$(el).val('#'+hex);
+							}
+						});
+					}
+				});
+			});
+
 	};
 
 	var clearProperties = function(){
 		_activeObj = null;
 		clip.destroy();
+		// cleanup garbage after ColorPicker
+		$('.colorpicker').remove();
 		$('#propertiesContainer').html('');
 	};
 
@@ -182,12 +207,12 @@ $(function(){
 				_activeObj = libData;
 				showProperties();
 			}
-			$(libData.dom).addClass("draggable");
+			$(libData.dom).addClass('draggable');
 
 		}
 	});
 
-	$("#showLibrary").button().click(function(){
+	$('#showLibrary').button().click(function(){
 		clearProperties();
 		$.tmpl('showLibrary', {library: _library}).appendTo('#propertiesContainer');
 	});
@@ -212,7 +237,7 @@ $(function(){
 			controls[typ].counter = 0;
 		}
 
-		var res = ["var win = Ti.UI.currentWindow;\n\n"];
+		var res = ['var win = Ti.UI.currentWindow;\n\n'];
 		for(var ii = 0; ii < _library.length; ii++){
 			var item = _library[ii];
 			if(item == null){
@@ -223,7 +248,7 @@ $(function(){
 		return res.join('');
 	};
 
-	$("#generate").button().click(function(){
+	$('#generate').button().click(function(){
 		clearProperties();
 		$.tmpl('generator')
 			.find('textarea').val(generateCode()).end()
@@ -233,7 +258,7 @@ $(function(){
 		clip.show();
 	});
 
-	$("#run").button().click(function(){
+	$('#run').button().click(function(){
 		var html = '<body></body><scr'+'ipt type="text/javascript" src="'+document.location.origin + document.location.pathname.replace(/(.*\/).*/, '$1')+'titanium.js"></scr'+'ipt>'+
 			'<scr'+'ipt type="text/javascript">'+generateCode()+'</scr'+'ipt>';
 		var win = window.open();
