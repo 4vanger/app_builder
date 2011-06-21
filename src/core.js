@@ -206,7 +206,7 @@ $(function(){
 		showProperties();
 	});
 
-	$("#generate").button().click(function(){
+	var generateCode = function(){
 		// clean all counters
 		for(var typ in controls){
 			controls[typ].counter = 0;
@@ -220,14 +220,23 @@ $(function(){
 			}
 			res.push(generate(item));
 		}
+		return res.join('');
+	};
 
-		res = res.join('');
+	$("#generate").button().click(function(){
 		clearProperties();
 		$.tmpl('generator')
-			.find('textarea').val(res).end()
+			.find('textarea').val(generateCode()).end()
 			.find('button').button().end()
 			.appendTo('#propertiesContainer');
 		clip.glue($('#copyGenerator').get(0));
 		clip.show();
-	})
+	});
+
+	$("#run").button().click(function(){
+		var html = '<body></body><scr'+'ipt type="text/javascript" src="'+document.location.origin + document.location.pathname.replace(/(.*\/).*/, '$1')+'titanium.js"></scr'+'ipt>'+
+			'<scr'+'ipt type="text/javascript">'+generateCode()+'</scr'+'ipt>';
+		var win = window.open();
+		win.document.write(html);
+	});
 });

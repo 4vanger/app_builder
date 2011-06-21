@@ -27,6 +27,7 @@
 	<div class="buttons">
 		<button id="showLibrary">Library</button>
 		<button id="generate">Generate</button>
+		<button id="run">Run</button>
 	</div>
 </div>
 <div id="propertiesContainer" class="properties ui-widget-content">
@@ -89,6 +90,10 @@
 					{{/if}}
 				{{/each}}
 			</ol>
+		</script>
+		<script id="runCodeTemplate" type="text/x-jquery-tmpl">
+			<div>
+			</div>
 		</script>
 		<script id="messageTemplate" type="text/x-jquery-tmpl">
 			<div class="message ${className} ui-corner-all">
