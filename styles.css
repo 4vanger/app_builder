@@ -4,6 +4,10 @@ body {
 	font-size: 12pt;
 }
 
+.clickable {
+	cursor: pointer;
+}
+
 .library, .canvas, .properties {
 	box-sizing: border-box;
 }
@@ -64,10 +68,6 @@ body {
 
 .ui-draggable {
 	z-index: 100;
-}
-
-.draggable {
-	border: 1px black dotted;
 }
 
 .properties {

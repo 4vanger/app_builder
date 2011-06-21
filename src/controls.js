@@ -1,4 +1,12 @@
-var args2str = function(args){
+var args2str = function(item){
+	if(item == null){
+		return;
+	}
+//	var args = item.args;
+//	_.each(controls[item.typ].interfaces, function(value){
+//		_.extend(args, interfaces[value].properties);
+//	});
+	var args = item.properties;
 	var str = [];
 	for(var arg in args){
 		var line = [];
@@ -20,6 +28,20 @@ var args2str = function(args){
 			line.push(value);
 		}
 
+		str.push(line.join(''));
+	}
+	return str.join(',\n');
+};
+var events2str = function(elId, events){
+	var str = [];
+	for(var ev in events){
+		var line = [];
+		line.push(elId);
+		line.push('.addEventListener(\'');
+		line.push(ev);
+		line.push('\', function(ev){\n');
+		line.push(events[ev].text);
+		line.push('\n});');
 		str.push(line.join(''));
 	}
 	return str.join(',\n');
@@ -97,7 +119,8 @@ var interfaces = {
 
 var controls = {
 	TextField: {
-		counter: 0,
+		varPrefix: "tf",
+		factory: "Ti.UI.createTextField",
 		create: function(left, top){
 			var args = {
 				left: left,
@@ -110,17 +133,13 @@ var controls = {
 				args: args
 			};
 		},
-		generate: function(item){
-			return 'var tf' + controls.TextField.counter + ' = Ti.UI.createTextField({\n' +
-				args2str(item.args) +
-				'\n});\nwin.add(tf' + controls.TextField.counter++ +');\n\n';
-		},
 		interfaces: ['DOMView', 'Clickable', 'Interactable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
 		}
 	},
 	Label: {
-		counter: 0,
+		varPrefix: "lb",
+		factory: "Ti.UI.createLabel",
 		create: function(left, top){
 			var args = {
 				left: left,
@@ -133,11 +152,6 @@ var controls = {
 				args: args
 			};
 		},
-		generate: function(item){
-			return 'var lb' + controls.Label.counter + ' = Ti.UI.createLabel({\n' +
-				args2str(item.args) +
-				'\n});\nwin.add(lb' + controls.Label.counter++ + ');\n\n';
-		},
 		interfaces: ['DOMView', 'Clickable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
 			'text': 'text',
@@ -147,7 +161,8 @@ var controls = {
 		}
 	},
 	TextArea: {
-		counter: 0,
+		varPrefix: "ta",
+		factory: "Ti.UI.createTextArea",
 		create: function(left, top){
 			var args = {
 				left: left,
@@ -160,17 +175,13 @@ var controls = {
 				args: args
 			};
 		},
-		generate: function(item){
-			return 'var ta' + controls.TextArea.counter + ' = Ti.UI.createTextArea({\n' +
-				args2str(item.args) +
-				'\n});\nwin.add(ta' + controls.TextArea.counter++ + ');\n\n';
-		},
 		interfaces: ['DOMView', 'Clickable', 'Interactable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
 		}
 	},
 	Switch: {
-		counter: 0,
+		varPrefix: "sw",
+		factory: "Ti.UI.createSwitch",
 		create: function(left, top){
 			var args = {
 				left: left,
@@ -184,17 +195,13 @@ var controls = {
 				args: args
 			};
 		},
-		generate: function(item){
-			return 'var sw' + controls.Switch.counter + ' = Ti.UI.createSwitch({\n' +
-				args2str(item.args) +
-				'\n});\nwin.add(sw' + controls.Switch.counter++ + ');\n\n';
-		},
 		interfaces: ['DOMView', 'Clickable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
 		}
 	},
 	Button: {
-		counter: 0,
+		varPrefix: "bt",
+		factory: "Ti.UI.createButton",
 		create: function(left, top){
 			var args = {
 				title: prompt("Button title"),
@@ -207,17 +214,13 @@ var controls = {
 				args: args
 			};
 		},
-		generate: function(item){
-			return 'var bt' + controls.Button.counter + ' = Ti.UI.createButton({\n' +
-				args2str(item.args) +
-				'\n});\nwin.add(bt' + controls.Button.counter++ + ');\n\n';
-		},
 		interfaces: ['DOMView', 'Clickable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
 		}
 	},
 	SearchBar: {
-		counter: 0,
+		varPrefix: "sb",
+		factory: "Ti.UI.createSearchBar",
 		create: function(left, top){
 			var args = {
 				left: left,
@@ -231,13 +234,34 @@ var controls = {
 				args: args
 			};
 		},
-		generate: function(item){
-			return 'var sb' + controls.SearchBar.counter + ' = Ti.UI.createSearchBar({\n' +
-				args2str(item.args) +
-				'\n});\nwin.add(sb' + controls.SearchBar.counter++ + ');\n\n';
-		},
 		interfaces: ['DOMView', 'Clickable', 'Interactable', 'Touchable', 'Styleable', 'Positionable'],
 		properties: {
 		}
 	}
+};
+
+var generate = function(item){
+	if(item == null || item.typ == null){
+		return;
+	}
+	var klass = item.typ;
+	klass = controls[klass];
+	if(klass == null){
+		return;
+	}
+
+	if(klass.generate != null){
+		return klass.generate(item);
+	}
+
+	if(klass.counter == null){
+		klass.counter = 0;
+	}
+
+	var id = klass.varPrefix + klass.counter++;
+	return 'var ' + id + ' = ' + klass.factory + '({\n' +
+		args2str(item) +
+		'\n});\n'+
+		events2str(id, item.events)
+		+'\nwin.add(' + id + ');\n\n';
 };

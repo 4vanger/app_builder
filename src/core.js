@@ -84,14 +84,36 @@ $(function(){
 		$('#propertiesContainer').html('');
 	};
 
-	$('#propertiesContainer input').live('change keyup', function(){
+	$('#propertiesContainer .property').live('change keyup', function(){
 		if(_activeObj == null){
 			return;
 		}
 		var el = $(this);
 		var propName = el.attr('name');
 		var val = el.val();
-		_activeObj.control[propName] = properties[el.attr('data-propertyType')].getValue(this);
+		var prop = properties[el.attr('data-propertyType')];
+		if(prop == null){
+			prop = properties['text'];
+		}
+		_activeObj.control[propName] = prop.getValue(this);
+		_activeObj.properties[propName] = val;
+	});
+
+	$('#propertiesContainer .event').live('blur', function(){
+		if(_activeObj == null){
+			return;
+		}
+		var el = $(this);
+		var eventName = el.attr('name');
+		var val = el.val();
+		if(_activeObj.events[eventName] != null){
+			_activeObj.control.removeEventListener(eventName, _activeObj.events[eventName].func);
+		}
+		_activeObj.events[eventName] = {
+			text: val,
+			func: new Function(val)
+		};
+		_activeObj.control.addEventListener(eventName, _activeObj.events[eventName].func);
 	});
 
 	var highlightEl = function(el){
@@ -105,7 +127,6 @@ $(function(){
 	});
 	$('#propertiesContainer #removeActive').live('click', function(){
 		win.remove(_activeObj.control);
-
 		_library[_activeObj.libId] = null;
 		clearProperties();
 	});
@@ -113,9 +134,13 @@ $(function(){
 	$.tmpl('main').appendTo(document.body);
 	var win = Ti.UI.currentWindow;
 	win.dom.className += ' canvas';
+	$('.library [data-libType]').draggable({
+		grid: [5, 5],
+		helper: 'clone',
+		containment: '.canvas'
+	});
 	var canvas = $('.canvas');
 	canvas.droppable({
-//		accept: '[data-libType]',
 		tolerance: 'fit',
 		activate: function(){
 			canvas.addClass('active');
@@ -129,8 +154,8 @@ $(function(){
 			var pos = getLeftTop(event, ui);
 			var typ = el.attr('data-libType');
 			if(libData != null) {
-				libData.control.left = libData.args.left = pos.left;
-				libData.control.top = libData.args.top = pos.top;
+				libData.control.left = libData.properties.left = pos.left;
+				libData.control.top = libData.properties.top = pos.top;
 				// need to restore element cause it was removed on drag end
 				var parent = ui.helper[0].parentNode;
 				setTimeout(function(){
@@ -147,8 +172,8 @@ $(function(){
 					control: obj.control,
 					dom: obj.control.dom,
 					typ: typ,
-					args: obj.args,
-					events: {}
+					events: {},
+					properties: obj.args
 				};
 				_library.push(libData);
 
@@ -160,11 +185,6 @@ $(function(){
 			$(libData.dom).addClass("draggable");
 
 		}
-	});
-	$('.library [data-libType]').draggable({
-		grid: [5, 5],
-		helper: 'clone',
-		containment: '.canvas'
 	});
 
 	$("#showLibrary").button().click(function(){
@@ -198,7 +218,7 @@ $(function(){
 			if(item == null){
 				continue;
 			}
-			res.push(controls[item.typ].generate(item));
+			res.push(generate(item));
 		}
 
 		res = res.join('');

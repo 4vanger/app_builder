@@ -40,7 +40,7 @@
 				{{tmpl({properties: properties, events: events, libData: libData, propertiesData: propertiesData}) 'propertiesList'}}
 				{{each interfaces}}
 					<li>
-						<h3 class="interfaceName ui-widget-header ui-state-default">${$value}</h3>
+						<h3 class="interfaceName clickable ui-widget-header ui-state-default">${$value}</h3>
 						<ul class="interfaceList">
 							{{tmpl({properties: interfacesData[$value].properties, events: interfacesData[$value].events, libData: libData, propertiesData: propertiesData}) 'propertiesList'}}
 						</ul>
@@ -54,7 +54,7 @@
 				{{tmpl({propertyName: $index, propertyType: $value, propertyValue: libData.control[$index], propertiesData: propertiesData}) 'property'}}
 			{{/each}}
 			{{each events}}
-				{{tmpl({eventName: $value, eventValue: libData.events[$value]}) 'event'}}
+				{{tmpl({eventName: $value, eventValue: libData.events[$value] ? libData.events[$value].text : ''}) 'event'}}
 			{{/each}}
 		</script>
 		<script id="propertyTemplate" type="text/x-jquery-tmpl">
@@ -64,12 +64,16 @@
 			</li>
 		</script>
 		<script id="eventTemplate" type="text/x-jquery-tmpl">
-			<li>
+			<li class="ui-helper-clearfix">
 				<div class="eventName">${eventName}</div>
-				<span class="propertyValue">
-					<textarea name="${eventNameName}">{{html eventValue}}</textarea>
-				</span>
+				<textarea class="event" name="${eventName}">{{html eventValue}}</textarea>
 			</li>
+		</script>
+		<script id="textPropertyTemplate" type="text/x-jquery-tmpl">
+			<input class="property" data-propertyType="${propertyType}" type="text" name="${name}" value="${value}"/>
+		</script>
+		<script id="boolPropertyTemplate" type="text/x-jquery-tmpl">
+			<input class="property" data-propertyType="${propertyType}" type="checkbox" name="${name}" ${value == true ? 'checked="checked"' : ''} />
 		</script>
 		<script id="generatorTemplate" type="text/x-jquery-tmpl">
 			<div>
@@ -77,17 +81,11 @@
 				<textarea id="generator"></textarea>
 			</div>
 		</script>
-		<script id="textPropertyTemplate" type="text/x-jquery-tmpl">
-			<input data-propertyType="${propertyType}" type="text" name="${name}" value="${value}"/>
-		</script>
-		<script id="boolPropertyTemplate" type="text/x-jquery-tmpl">
-			<input data-propertyType="${propertyType}" type="checkbox" name="${name}" ${value == true ? 'checked="checked"' : ''} />
-		</script>
 		<script id="showLibraryTemplate" type="text/x-jquery-tmpl">
 			<ol class="libraryItems">
 				{{each library}}
 					{{if $value != null}}
-						<li data-libId="${$value.libId}">${$value.typ}</li>
+						<li class="clickable" data-libId="${$value.libId}">${$value.typ}</li>
 					{{/if}}
 				{{/each}}
 			</ol>
