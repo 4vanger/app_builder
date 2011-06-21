@@ -92,7 +92,7 @@ $(function(){
 							if(el.className == 'colorPickerIcon'){
 								$(el).css('backgroundColor', '#' + hex);
 							} else {
-								$(el).val('#'+hex);
+								$(el).val('#'+hex).change();
 							}
 						});
 					}
@@ -213,6 +213,7 @@ $(function(){
 	});
 
 	$('#showLibrary').button().click(function(){
+		console.log(_library);
 		clearProperties();
 		$.tmpl('showLibrary', {library: _library}).appendTo('#propertiesContainer');
 	});
